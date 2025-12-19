@@ -3,10 +3,24 @@ const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const HtmlPlugin = require('html-webpack-plugin');
 
+// 1. Выносим настройки в отдельную переменную перед module.exports
+/** @type {any} */
+const copyPluginConfig = {
+  patterns: [
+    {
+      from: 'public',
+      globOptions: {
+        ignore: ['**/index.html'],
+      },
+      to: path.resolve(__dirname, 'build'),
+    },
+  ],
+};
+
 module.exports = {
   entry: './src/main.js', // Точка входа
   output: {
-    filename: 'bundle.js', // Имя бандла
+    filename: 'bundle.[contenthash].js', // Имя бандла
     path: path.resolve(__dirname, 'build'), // Директория для файлов сборки
     clean: true, // Удаляем предыдущую сборку перед созданием новой
   },
@@ -15,16 +29,19 @@ module.exports = {
     new HtmlPlugin({
       template: 'public/index.html',
     }),
-    new CopyPlugin({
-      patterns: [
-        {
-          from: 'public',
-          globOptions: {
-            ignore: ['**/index.html'],
-          },
-        },
-      ],
-    }),
+    // new CopyPlugin(
+    //   {
+    //   patterns: [
+    //     {
+    //       from: 'public',
+    //       globOptions: {
+    //         ignore: ['**/index.html'],
+    //       },
+    //       to: path.resolve(__dirname, 'build'),
+    //     },
+    //   ],
+    // }),
+    new CopyPlugin(copyPluginConfig),
   ],
   module: {
     rules: [ // Добавляем лоадеры
