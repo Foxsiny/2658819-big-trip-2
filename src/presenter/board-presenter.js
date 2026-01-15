@@ -10,6 +10,8 @@ export default class BoardPresenter {
   #boardContainer = null;
   #pointsModel = null;
   #boardPoints = [];
+  #boardDestinations = [];
+  #boardOffers = [];
 
   constructor({boardContainer, pointsModel}) {
     this.#boardContainer = boardContainer;
@@ -19,6 +21,8 @@ export default class BoardPresenter {
   init() {
     // 1. Подготавливаем данные
     this.#boardPoints = [...this.#pointsModel.points];
+    this.#boardDestinations = [...this.#pointsModel.destinations];
+    this.#boardOffers = [...this.#pointsModel.offers];
 
     // 2. Вызываем рендеринг
     this.#renderBoard();
@@ -31,7 +35,11 @@ export default class BoardPresenter {
 
     // Отрисовываем форму редактирования для первой точки
     if (this.#boardPoints.length > 0) {
-      render(new PointEditView({point: this.#boardPoints[0]}), this.#listComponent.getElement());
+      render(new PointEditView({
+        point: this.#boardPoints[0],
+        destinations: this.#boardDestinations,
+        offers: this.#boardOffers
+      }), this.#listComponent.getElement());
     }
 
     render(new PointAddView(), this.#listComponent.getElement());
@@ -44,7 +52,11 @@ export default class BoardPresenter {
 
   // Приватный метод для отрисовки одной точки
   #renderPoint(point) {
-    const pointComponent = new PointView({point});
+    const pointComponent = new PointView({
+      point,
+      destinations: this.#boardDestinations,
+      offers: this.#boardOffers
+    });
     render(pointComponent, this.#listComponent.getElement());
   }
 }

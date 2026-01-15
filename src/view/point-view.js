@@ -1,19 +1,39 @@
 import {createElement} from '../render.js';
 import { humanizePointDate, humanizePointTime } from '../utils.js';
 
-const createPointTemplate = (point) => {
-  const { basePrice, dateFrom, dateTo, isFavorite, type } = point;
+const createPointTemplate = (point, destinations, offers) => {
+  const { basePrice, dateFrom, dateTo, isFavorite, type, destination: destId, offers: selectedOfferIds } = point;
+
+  const pointDestination = destinations.find((d) => d.id === destId);
+
+  // Находим все офферы именно для этого типа точки (например, для 'taxi')
+  const offersByType = offers.find((o) => o.type === type);
+
+  // Фильтруем их, оставляя только те, ID которых есть в самой точке (point.offers)
+  const selectedOffers = offersByType
+    ? offersByType.offers.filter((o) => selectedOfferIds.includes(o.id))
+    : [];
+
   // Если isFavorite true, добавляем активный класс
   const favoriteClassName = isFavorite
     ? 'event__favorite-btn--active'
     : '';
+
+  // Генерируем HTML для списка офферов
+  const offersTemplate = selectedOffers.map((offer) => `
+    <li class="event__offer">
+      <span class="event__offer-title">${offer.title}</span>
+      &plus;&euro;&nbsp;
+      <span class="event__offer-price">${offer.price}</span>
+    </li>
+  `).join('');
   return `<li class="trip-events__item">
     <div class="event">
       <time class="event__date" datetime="${dateFrom}">${humanizePointDate(dateFrom)}</time>
       <div class="event__type">
         <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
       </div>
-      <h3 class="event__title">${type.charAt(0).toUpperCase() + type.slice(1)} Amsterdam</h3>
+      <h3 class="event__title">${type.charAt(0).toUpperCase() + type.slice(1)} ${pointDestination ? pointDestination.name : ''}</h3>
       <div class="event__schedule">
         <p class="event__time">
           <time class="event__start-time" datetime="${dateFrom}">${humanizePointTime(dateFrom)}</time>
@@ -27,11 +47,7 @@ const createPointTemplate = (point) => {
       </p>
       <h4 class="visually-hidden">Offers:</h4>
       <ul class="event__selected-offers">
-        <li class="event__offer">
-          <span class="event__offer-title">Order Uber</span>
-          &plus;&euro;&nbsp;
-          <span class="event__offer-price">20</span>
-        </li>
+        ${offersTemplate}
       </ul>
       <button class="event__favorite-btn ${favoriteClassName}" type="button">
         <span class="visually-hidden">Add to favorite</span>
@@ -50,14 +66,18 @@ const createPointTemplate = (point) => {
 export default class PointView {
   #element = null;
   #point = null;
+  #destinations = null;
+  #offers = null;
 
   // Конструктор теперь принимает данные точки
-  constructor({ point }) {
+  constructor({ point, destinations, offers }) {
     this.#point = point;
+    this.#destinations = destinations;
+    this.#offers = offers;
   }
 
   getTemplate() {
-    return createPointTemplate(this.#point);
+    return createPointTemplate(this.#point, this.#destinations, this.#offers);
   }
 
   getElement() {

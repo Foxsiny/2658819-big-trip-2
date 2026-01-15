@@ -1,15 +1,14 @@
 import {createElement} from '../render.js';
-
-const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
+import {POINT_TYPES} from '../const.js';
 
 // Тестовые данные для опций (в будущем они будут приходить из модели)
-const OFFERS = [
-  {id: 'luggage', title: 'Add luggage', price: 50, isChecked: true},
-  {id: 'comfort', title: 'Switch to comfort', price: 80, isChecked: true},
-  {id: 'meal', title: 'Add meal', price: 15, isChecked: false},
-  {id: 'seats', title: 'Choose seats', price: 5, isChecked: false},
-  {id: 'train', title: 'Travel by train', price: 40, isChecked: false},
-];
+// const OFFERS = [
+//   {id: 'luggage', title: 'Add luggage', price: 50, isChecked: true},
+//   {id: 'comfort', title: 'Switch to comfort', price: 80, isChecked: true},
+//   {id: 'meal', title: 'Add meal', price: 15, isChecked: false},
+//   {id: 'seats', title: 'Choose seats', price: 5, isChecked: false},
+//   {id: 'train', title: 'Travel by train', price: 40, isChecked: false},
+// ];
 
 // Вспомогательная функция для создания одного пункта списка типов
 const createEventTypeItemTemplate = (type, currentType) => `
@@ -29,8 +28,8 @@ const createEventTypeItemTemplate = (type, currentType) => `
 `;
 
 // Вспомогательная функция для генерации одной опции
-const createOfferSelectorTemplate = (offer) => {
-  const {id, title, price, isChecked} = offer;
+const createOfferSelectorTemplate = (offer, isChecked) => {
+  const {id, title, price} = offer;
 
   return `
     <div class="event__offer-selector">
@@ -51,8 +50,8 @@ const createOfferSelectorTemplate = (offer) => {
 };
 
 // Функция для создания ВСЕЙ секции офферов
-const createOffersSectionTemplate = (offers) => {
-  if (offers.length === 0) {
+const createOffersSectionTemplate = (allOffers, selectedOfferIds) => {
+  if (allOffers.length === 0) {
     return '';
   }
 
@@ -60,13 +59,21 @@ const createOffersSectionTemplate = (offers) => {
     <section class="event__section  event__section--offers">
       <h3 class="event__section-title  event__section-title--offers">Offers</h3>
       <div class="event__available-offers">
-        ${offers.map((offer) => createOfferSelectorTemplate(offer)).join('')}
+        ${allOffers.map((offer) => createOfferSelectorTemplate(offer, selectedOfferIds.includes(offer.id))).join('')}
       </div>
     </section>`;
 };
 
-const createPointEditTemplate = () => {
-  const currentType = 'flight'; // Пока статично
+// 4. Основная функция шаблона
+const createPointEditTemplate = (point, destinations, offers) => {
+  const {type, basePrice, destination: destId, offers: selectedOfferIds} = point;
+
+  // Находим данные текущего пункта назначения по ID
+  const currentDestination = destinations.find((d) => d.id === destId);
+
+  // Находим все доступные офферы для данного типа точки
+  const offersByType = offers.find((o) => o.type === type);
+  const allOffers = offersByType ? offersByType.offers : [];
 
   return `
   <li class="trip-events__item">
@@ -75,7 +82,7 @@ const createPointEditTemplate = () => {
       <div class="event__type-wrapper">
         <label class="event__type  event__type-btn" for="event-type-toggle-1">
           <span class="visually-hidden">Choose event type</span>
-          <img class="event__type-icon" width="17" height="17" src="img/icons/${currentType}.png" alt="Event type icon">
+          <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon">
         </label>
         <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
@@ -83,7 +90,7 @@ const createPointEditTemplate = () => {
           <fieldset class="event__type-group">
             <legend class="visually-hidden">Event type</legend>
 
-            ${POINT_TYPES.map((type) => createEventTypeItemTemplate(type, currentType)).join('')}
+            ${POINT_TYPES.map((pointType) => createEventTypeItemTemplate(pointType, type)).join('')}
 
           </fieldset>
         </div>
@@ -91,14 +98,12 @@ const createPointEditTemplate = () => {
 
       <div class="event__field-group  event__field-group--destination">
         <label class="event__label  event__type-output" for="event-destination-1">
-          Flight
+          ${type}
         </label>
         <input class="event__input  event__input--destination" id="event-destination-1" type="text"
-               name="event-destination" value="Chamonix" list="destination-list-1"/>
+               name="event-destination" value="${currentDestination ? currentDestination.name : ''}" list="destination-list-1"/>
         <datalist id="destination-list-1">
-          <option value="Amsterdam"></option>
-          <option value="Geneva"></option>
-          <option value="Chamonix"></option>
+          ${destinations.map((d) => `<option value="${d.name}"></option>`).join('')}
         </datalist>
       </div>
 
@@ -118,7 +123,7 @@ const createPointEditTemplate = () => {
           &euro;
         </label>
         <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price"
-               value="160"/>
+               value="${basePrice}"/>
       </div>
 
       <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -128,15 +133,19 @@ const createPointEditTemplate = () => {
       </button>
     </header>
     <section class="event__details">
+     ${createOffersSectionTemplate(allOffers, selectedOfferIds)}
 
-          ${createOffersSectionTemplate(OFFERS)}
-
-      <section class="event__section  event__section--destination">
-        <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-        <p class="event__destination-description">Chamonix-Mont-Blanc (usually shortened to Chamonix) is a resort
-          area near the junction of France, Switzerland and Italy. At the base of Mont Blanc, the highest summit in the
-          Alps, it's renowned for its skiing.</p>
-      </section>
+      ${currentDestination ? `
+        <section class="event__section  event__section--destination">
+          <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+          <p class="event__destination-description">${currentDestination.description}</p>
+          ${currentDestination.pictures.length > 0 ? `
+            <div class="event__photos-container">
+              <div class="event__photos-tape">
+                ${currentDestination.pictures.map((pic) => `<img class="event__photo" src="${pic.src}" alt="${pic.description}">`).join('')}
+              </div>
+            </div>` : ''}
+        </section>` : ''}
     </section>
   </form>
   </li>
@@ -144,8 +153,18 @@ const createPointEditTemplate = () => {
 };
 
 export default class PointEditView {
+  #element = null;
+  #point = null;
+  #destinations = null;
+  #offers = null;
+  constructor({point, destinations, offers}) {
+    this.#point = point;
+    this.#destinations = destinations;
+    this.#offers = offers;
+  }
+
   getTemplate() {
-    return createPointEditTemplate();
+    return createPointEditTemplate(this.#point, this.#destinations, this.#offers);
   }
 
   getElement() {
