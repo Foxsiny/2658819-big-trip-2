@@ -55,7 +55,7 @@ const createOffersSectionTemplate = (offers) => {
     </section>`;
 };
 
-const createPointAddTemplate = () => {
+const createPointAddTemplate = (offers) => {
   const currentType = 'flight'; // Пока статично, как в вашей разметке
 
   return `
@@ -149,7 +149,7 @@ export default class PointAddView extends AbstractView {
       .addEventListener('click', this.#cancelClickHandler);
   }
 
-  get template()  {
+  get template() {
     return createPointAddTemplate(this.#offers);
   }
 

@@ -5,7 +5,7 @@ const createListTemplate = () => `
 `;
 
 export default class ListView extends AbstractView {
-  get template()  {
+  get template() {
     return createListTemplate();
   }
 }

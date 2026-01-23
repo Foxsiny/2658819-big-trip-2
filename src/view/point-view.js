@@ -82,7 +82,7 @@ export default class PointView extends AbstractView{
       .addEventListener('click', this.#editClickHandler);
   }
 
-  get template()  {
+  get template() {
     return createPointTemplate(this.#point, this.#destinations, this.#offers);
   }
 

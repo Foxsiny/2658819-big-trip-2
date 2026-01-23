@@ -3,7 +3,6 @@ import SortingView from '../view/sorting-view.js';
 import ListView from '../view/list-view.js';
 import PointView from '../view/point-view.js';
 import PointEditView from '../view/point-edit-view.js';
-import PointAddView from '../view/point-add-view.js';
 
 export default class BoardPresenter {
   #listComponent = new ListView();
@@ -40,15 +39,29 @@ export default class BoardPresenter {
 
   // Приватный метод для отрисовки одной точки
   #renderPoint(point) {
+
+    // 1. Объявляем переменные через let (они пока пустые)
+    let pointComponent = null;
+    let pointEditComponent = null;
+
+    const replaceCardToForm = () => {
+      replace(pointEditComponent, pointComponent);
+    };
+
+    const replaceFormToCard = () => {
+      replace(pointComponent, pointEditComponent);
+    };
+
     const escKeyDownHandler = (evt) => {
       if (evt.key === 'Escape') {
         evt.preventDefault();
         replaceFormToCard();
         document.removeEventListener('keydown', escKeyDownHandler);
       }
-  };
+    };
+
     // Создаем компонент карточки точки
-    const pointComponent = new PointView({
+    pointComponent = new PointView({
       point,
       destinations: this.#boardDestinations,
       offers: this.#boardOffers,
@@ -59,7 +72,7 @@ export default class BoardPresenter {
     });
 
     // Создаем компонент формы редактирования
-    const pointEditComponent = new PointEditView({
+    pointEditComponent = new PointEditView({
       point,
       destinations: this.#boardDestinations,
       offers: this.#boardOffers,
@@ -72,14 +85,6 @@ export default class BoardPresenter {
         document.removeEventListener('keydown', escKeyDownHandler);
       },
     });
-
-    const replaceCardToForm = () => {
-      replace(pointEditComponent, pointComponent);
-    };
-
-    const replaceFormToCard = () => {
-      replace(pointComponent, pointEditComponent);
-    };
 
     render(pointComponent, this.#listComponent.element);
   }

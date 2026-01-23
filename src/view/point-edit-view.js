@@ -168,7 +168,7 @@ export default class PointEditView extends AbstractView {
       .addEventListener('click', this.#rollupClickHandler);
   }
 
-  get template()  {
+  get template() {
     return createPointEditTemplate(this.#point, this.#destinations, this.#offers);
   }
 
