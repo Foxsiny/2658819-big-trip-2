@@ -1,6 +1,5 @@
-import {createElement} from '../render.js';
-
-const FILTER_TYPES = ['everything', 'future', 'present', 'past'];
+import AbstractView from '../framework/view/abstract-view.js';
+import { FILTER_TYPES } from '../const.js';
 
 const createFilterItemTemplate = (type) => {
   // По умолчанию выбран фильтр "everything"
@@ -29,19 +28,11 @@ const createFilterTemplate = () => `
   </form>
 `;
 
-export default class FilterView {
-  getTemplate() {
+// 2. Наследуемся от AbstractView
+export default class FilterView extends AbstractView {
+
+  // 3. Заменяем метод getTemplate() на геттер template
+  get template() {
     return createFilterTemplate();
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
   }
 }

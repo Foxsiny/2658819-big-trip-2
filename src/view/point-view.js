@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import { humanizePointDate, humanizePointTime } from '../utils.js';
 
 const createPointTemplate = (point, destinations, offers) => {
@@ -63,31 +63,32 @@ const createPointTemplate = (point, destinations, offers) => {
 `;
 };
 
-export default class PointView {
-  #element = null;
+export default class PointView extends AbstractView{
   #point = null;
   #destinations = null;
   #offers = null;
+  #handleEditClick = null; // Приватное поле для колбэка
 
   // Конструктор теперь принимает данные точки
-  constructor({ point, destinations, offers }) {
+  constructor({ point, destinations, offers, onEditClick}) {
+    super();
     this.#point = point;
     this.#destinations = destinations;
     this.#offers = offers;
+    this.#handleEditClick = onEditClick;
+    // Навешиваем слушатель на кнопку "стрелочка"
+    // Используем геттер this.element, который теперь берется из AbstractView
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#editClickHandler);
   }
 
-  getTemplate() {
+  get template()  {
     return createPointTemplate(this.#point, this.#destinations, this.#offers);
   }
 
-  getElement() {
-    if (!this.#element) {
-      this.#element = createElement(this.getTemplate());
-    }
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
-  }
+  // Приватный метод-обработчик (стрелочная функция для сохранения контекста)
+  #editClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleEditClick(); // Вызываем переданную функцию из презентера
+  };
 }

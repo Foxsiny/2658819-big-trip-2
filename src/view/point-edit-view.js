@@ -1,14 +1,6 @@
-import {createElement} from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import {POINT_TYPES} from '../const.js';
 
-// Тестовые данные для опций (в будущем они будут приходить из модели)
-// const OFFERS = [
-//   {id: 'luggage', title: 'Add luggage', price: 50, isChecked: true},
-//   {id: 'comfort', title: 'Switch to comfort', price: 80, isChecked: true},
-//   {id: 'meal', title: 'Add meal', price: 15, isChecked: false},
-//   {id: 'seats', title: 'Choose seats', price: 5, isChecked: false},
-//   {id: 'train', title: 'Travel by train', price: 40, isChecked: false},
-// ];
 
 // Вспомогательная функция для создания одного пункта списка типов
 const createEventTypeItemTemplate = (type, currentType) => `
@@ -152,29 +144,43 @@ const createPointEditTemplate = (point, destinations, offers) => {
   `;
 };
 
-export default class PointEditView {
-  #element = null;
+export default class PointEditView extends AbstractView {
   #point = null;
   #destinations = null;
   #offers = null;
-  constructor({point, destinations, offers}) {
+  #handleFormSubmit = null;
+  #handleRollupClick = null;
+  constructor({point, destinations, offers, onFormSubmit, onRollupClick }) {
+    super();
     this.#point = point;
     this.#destinations = destinations;
     this.#offers = offers;
+
+    this.#handleFormSubmit = onFormSubmit;
+    this.#handleRollupClick = onRollupClick;
+
+    // 1. Навешиваем слушатель на отправку формы (кнопка Save)
+    this.element.querySelector('form')
+      .addEventListener('submit', this.#formSubmitHandler);
+
+    // 2. Навешиваем слушатель на кнопку закрытия (стрелочка вверх)
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#rollupClickHandler);
   }
 
-  getTemplate() {
+  get template()  {
     return createPointEditTemplate(this.#point, this.#destinations, this.#offers);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-    return this.element;
-  }
+  // Обработчик отправки формы
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormSubmit(); // Вызываем колбэк из Презентера
+  };
 
-  removeElement() {
-    this.element = null;
-  }
+  // Обработчик клика по стрелочке вверх
+  #rollupClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleRollupClick(); // Вызываем колбэк из Презентера
+  };
 }

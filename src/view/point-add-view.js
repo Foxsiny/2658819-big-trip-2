@@ -1,15 +1,5 @@
-import {createElement} from '../render.js';
-
-const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
-
-// Тестовые данные для опций (в будущем они будут приходить из модели)
-const OFFERS = [
-  {id: 'luggage', title: 'Add luggage', price: 30, isChecked: true},
-  {id: 'comfort', title: 'Switch to comfort', price: 100, isChecked: true},
-  {id: 'meal', title: 'Add meal', price: 15, isChecked: false},
-  {id: 'seats', title: 'Choose seats', price: 5, isChecked: false},
-  {id: 'train', title: 'Travel by train', price: 40, isChecked: false},
-];
+import AbstractView from '../framework/view/abstract-view.js';
+import { POINT_TYPES } from '../const.js';
 
 // Вспомогательная функция для создания одного пункта списка типов
 const createEventTypeItemTemplate = (type, currentType) => `
@@ -52,7 +42,7 @@ const createOfferSelectorTemplate = (offer) => {
 
 // Функция для создания ВСЕЙ секции офферов
 const createOffersSectionTemplate = (offers) => {
-  if (offers.length === 0) {
+  if (!offers || offers.length === 0) {
     return '';
   }
 
@@ -127,20 +117,11 @@ const createPointAddTemplate = () => {
     </header>
     <section class="event__details">
 
-          ${createOffersSectionTemplate(OFFERS)}
+          ${createOffersSectionTemplate(offers)}
 
       <section class="event__section  event__section--destination">
         <h3 class="event__section-title  event__section-title--destination">Destination</h3>
         <p class="event__destination-description">Geneva is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Geneva). Surrounded by the Alps and Jura mountains, the city has views of dramatic Mont Blanc.</p>
-        <div class="event__photos-container">
-          <div class="event__photos-tape">
-            <img class="event__photo" src="img/photos/1.jpg" alt="Event photo">
-            <img class="event__photo" src="img/photos/2.jpg" alt="Event photo">
-            <img class="event__photo" src="img/photos/3.jpg" alt="Event photo">
-            <img class="event__photo" src="img/photos/4.jpg" alt="Event photo">
-            <img class="event__photo" src="img/photos/5.jpg" alt="Event photo">
-          </div>
-        </div>
       </section>
     </section>
   </form>
@@ -148,19 +129,37 @@ const createPointAddTemplate = () => {
   `;
 };
 
-export default class PointAddView {
-  getTemplate() {
-    return createPointAddTemplate();
+export default class PointAddView extends AbstractView {
+  #offers = null;
+  #handleFormSubmit = null;
+  #handleCancelClick = null;
+
+  constructor({ offers, onFormSubmit, onCancelClick }) {
+    super();
+    this.#offers = offers;
+    this.#handleFormSubmit = onFormSubmit;
+    this.#handleCancelClick = onCancelClick;
+
+    // Навешиваем слушатель на кнопку Save (отправка формы)
+    this.element.querySelector('form')
+      .addEventListener('submit', this.#formSubmitHandler);
+
+    // Навешиваем слушатель на кнопку Cancel (тип reset)
+    this.element.querySelector('.event__reset-btn')
+      .addEventListener('click', this.#cancelClickHandler);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-    return this.element;
+  get template()  {
+    return createPointAddTemplate(this.#offers);
   }
 
-  removeElement() {
-    this.element = null;
-  }
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormSubmit();
+  };
+
+  #cancelClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleCancelClick();
+  };
 }

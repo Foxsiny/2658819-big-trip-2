@@ -1,4 +1,4 @@
-import {render} from '../render.js';
+import {render, replace} from '../framework/render.js';
 import SortingView from '../view/sorting-view.js';
 import ListView from '../view/list-view.js';
 import PointView from '../view/point-view.js';
@@ -33,31 +33,55 @@ export default class BoardPresenter {
     render(new SortingView(), this.#boardContainer);
     render(this.#listComponent, this.#boardContainer);
 
-    // Отрисовываем форму редактирования для первой точки
-    if (this.#boardPoints.length > 0) {
-      render(new PointEditView({
-        point: this.#boardPoints[0],
-        destinations: this.#boardDestinations,
-        offers: this.#boardOffers
-      }), this.#listComponent.getElement());
-    }
-
-    render(new PointAddView(), this.#listComponent.getElement());
-
-    // Отрисовываем список точек
-    for (let i = 0; i < this.#boardPoints.length; i++) {
-      this.#renderPoint(this.#boardPoints[i]);
-    }
+    this.#boardPoints.forEach((point) => {
+      this.#renderPoint(point);
+    });
   }
 
   // Приватный метод для отрисовки одной точки
   #renderPoint(point) {
+    const escKeyDownHandler = (evt) => {
+      if (evt.key === 'Escape') {
+        evt.preventDefault();
+        replaceFormToCard();
+        document.removeEventListener('keydown', escKeyDownHandler);
+      }
+  };
+    // Создаем компонент карточки точки
     const pointComponent = new PointView({
       point,
       destinations: this.#boardDestinations,
-      offers: this.#boardOffers
+      offers: this.#boardOffers,
+      onEditClick: () => {
+        replaceCardToForm();
+        document.addEventListener('keydown', escKeyDownHandler);
+      },
     });
-    render(pointComponent, this.#listComponent.getElement());
+
+    // Создаем компонент формы редактирования
+    const pointEditComponent = new PointEditView({
+      point,
+      destinations: this.#boardDestinations,
+      offers: this.#boardOffers,
+      onFormSubmit: () => {
+        replaceFormToCard();
+        document.removeEventListener('keydown', escKeyDownHandler);
+      },
+      onRollupClick: () => {
+        replaceFormToCard();
+        document.removeEventListener('keydown', escKeyDownHandler);
+      },
+    });
+
+    const replaceCardToForm = () => {
+      replace(pointEditComponent, pointComponent);
+    };
+
+    const replaceFormToCard = () => {
+      replace(pointComponent, pointEditComponent);
+    };
+
+    render(pointComponent, this.#listComponent.element);
   }
 }
 

@@ -7,7 +7,7 @@ const mockDestinations = DESTINATION_NAMES.map((name, index) => ({
   name: name, // Берем имя из вашей константы
   description: `${name} is a beautiful city...`,
   pictures: Array.from({length: 4}, () => ({
-    src: `22.objects.htmlacademy.pro/${getRandomInteger(1, 15)}.jpg`,
+    src: `https://22.objects.htmlacademy.pro/static/destinations/${getRandomInteger(1, 15)}.jpg`,
     description: `${name} parliament building`
   }))
 }));
