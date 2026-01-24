@@ -6,16 +6,17 @@ export default class PointsModel {
   #destinations = mockDestinations;
   #offers = mockOffers;
 
-  // 3. Метод для получения всех точек
-  // Мы возвращаем копию массива [...], чтобы никто случайно не изменил данные внутри модели
-  // Геттер для получения точек
-  get points() { return [...this.#points]; }
+  get points() {
+    return [...this.#points];
+  }
 
-  // Геттер для получения пунктов назначения
-  get destinations() { return [...this.#destinations]; }
+  get destinations() {
+    return [...this.#destinations];
+  }
 
-  // Геттер для получения офферов
-  get offers() { return [...this.#offers]; }
+  get offers() {
+    return [...this.#offers];
+  }
 
   // Метод поиска для удобства презентера
   getDestinationById(id) {

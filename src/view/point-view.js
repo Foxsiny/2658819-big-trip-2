@@ -87,6 +87,7 @@ export default class PointView extends AbstractView{
     evt.preventDefault();
     this.#handleEditClick?.(); // Вызываем переданную функцию из презентера
   };
+
   // Метод для установки слушателей событий
   #setInnerHandlers() {
     this.element.querySelector('.event__rollup-btn')
