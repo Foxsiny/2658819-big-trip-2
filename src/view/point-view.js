@@ -1,25 +1,14 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import { humanizePointDate, humanizePointTime } from '../utils.js';
 
-const createPointTemplate = (point, destinations, offers) => {
-  const { basePrice, dateFrom, dateTo, isFavorite, type, destination: destId, offers: selectedOfferIds } = point;
-
-  const pointDestination = destinations.find((d) => d.id === destId);
-
-  // Находим все офферы именно для этого типа точки (например, для 'taxi')
-  const offersByType = offers.find((o) => o.type === type);
-
-  // Фильтруем их, оставляя только те, ID которых есть в самой точке (point.offers)
-  const selectedOffers = offersByType
-    ? offersByType.offers.filter((o) => selectedOfferIds.includes(o.id))
-    : [];
+const createPointTemplate = (point, destination, selectedOffers) => {
+  const { basePrice, dateFrom, dateTo, isFavorite, type } = point;
 
   // Если isFavorite true, добавляем активный класс
   const favoriteClassName = isFavorite
     ? 'event__favorite-btn--active'
     : '';
 
-  // Генерируем HTML для списка офферов
   const offersTemplate = selectedOffers.map((offer) => `
     <li class="event__offer">
       <span class="event__offer-title">${offer.title}</span>
@@ -27,13 +16,14 @@ const createPointTemplate = (point, destinations, offers) => {
       <span class="event__offer-price">${offer.price}</span>
     </li>
   `).join('');
+
   return `<li class="trip-events__item">
     <div class="event">
       <time class="event__date" datetime="${dateFrom}">${humanizePointDate(dateFrom)}</time>
       <div class="event__type">
         <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
       </div>
-      <h3 class="event__title">${type.charAt(0).toUpperCase() + type.slice(1)} ${pointDestination ? pointDestination.name : ''}</h3>
+      <h3 class="event__title">${type} ${destination ? destination.name : ''}</h3>
       <div class="event__schedule">
         <p class="event__time">
           <time class="event__start-time" datetime="${dateFrom}">${humanizePointTime(dateFrom)}</time>
@@ -65,7 +55,7 @@ const createPointTemplate = (point, destinations, offers) => {
 
 export default class PointView extends AbstractView{
   #point = null;
-  #destinations = null;
+  #destination = null;
   #offers = null;
   #handleEditClick = null; // Приватное поле для колбэка
 
@@ -73,22 +63,33 @@ export default class PointView extends AbstractView{
   constructor({ point, destinations, offers, onEditClick}) {
     super();
     this.#point = point;
-    this.#destinations = destinations;
-    this.#offers = offers;
+
+    // 1. Поиск данных СРАЗУ в конструкторе
+    this.#destination = destinations.find((d) => d.id === point.destination);
+
+    const offersByType = offers.find((o) => o.type === point.type);
+    this.#offers = offersByType
+      ? offersByType.offers.filter((o) => point.offers.includes(o.id))
+      : [];
+
     this.#handleEditClick = onEditClick;
-    // Навешиваем слушатель на кнопку "стрелочка"
-    // Используем геттер this.element, который теперь берется из AbstractView
-    this.element.querySelector('.event__rollup-btn')
-      .addEventListener('click', this.#editClickHandler);
+
+    // 2. Установка слушателей через отдельный приватный метод
+    this.#setInnerHandlers();
   }
 
   get template() {
-    return createPointTemplate(this.#point, this.#destinations, this.#offers);
+    return createPointTemplate(this.#point, this.#destination, this.#offers);
   }
 
   // Приватный метод-обработчик (стрелочная функция для сохранения контекста)
   #editClickHandler = (evt) => {
     evt.preventDefault();
-    this.#handleEditClick(); // Вызываем переданную функцию из презентера
+    this.#handleEditClick?.(); // Вызываем переданную функцию из презентера
   };
+  // Метод для установки слушателей событий
+  #setInnerHandlers() {
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#editClickHandler);
+  }
 }
