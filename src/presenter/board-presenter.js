@@ -9,8 +9,6 @@ export default class BoardPresenter {
   #boardContainer = null;
   #pointsModel = null;
   #boardPoints = [];
-  #boardDestinations = [];
-  #boardOffers = [];
 
   constructor({boardContainer, pointsModel}) {
     this.#boardContainer = boardContainer;
@@ -18,12 +16,8 @@ export default class BoardPresenter {
   }
 
   init() {
-    // 1. Подготавливаем данные
     this.#boardPoints = [...this.#pointsModel.points];
-    this.#boardDestinations = [...this.#pointsModel.destinations];
-    this.#boardOffers = [...this.#pointsModel.offers];
 
-    // 2. Вызываем рендеринг
     this.#renderBoard();
   }
 
@@ -39,7 +33,6 @@ export default class BoardPresenter {
 
   // Приватный метод для отрисовки одной точки
   #renderPoint(point) {
-
     // 1. Объявляем переменные через let (они пока пустые)
     let pointComponent = null;
     let pointEditComponent = null;
@@ -60,11 +53,11 @@ export default class BoardPresenter {
       }
     };
 
-    // Создаем компонент карточки точки
+    // Создаем карточку (готовый компонент): передаем ГОТОВЫЙ город и ГОТОВЫЕ офферы
     pointComponent = new PointView({
       point,
-      destinations: this.#boardDestinations,
-      offers: this.#boardOffers,
+      destination: this.#pointsModel.getDestinationById(point.destination), // Готовый объект города
+      offers: this.#pointsModel.getOffersByType(point.type), // Массив офферов именно этого типа
       onEditClick: () => {
         replaceCardToForm();
         document.addEventListener('keydown', escKeyDownHandler);
@@ -74,8 +67,8 @@ export default class BoardPresenter {
     // Создаем компонент формы редактирования
     pointEditComponent = new PointEditView({
       point,
-      destinations: this.#boardDestinations,
-      offers: this.#boardOffers,
+      destination: this.#pointsModel.getDestinationById(point.destination),
+      offers: this.#pointsModel.getOffersByType(point.type),
       onFormSubmit: () => {
         replaceFormToCard();
         document.removeEventListener('keydown', escKeyDownHandler);
@@ -89,4 +82,3 @@ export default class BoardPresenter {
     render(pointComponent, this.#listComponent.element);
   }
 }
-

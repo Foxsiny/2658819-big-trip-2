@@ -86,7 +86,7 @@ const createPointEditTemplate = (point, destination, allOffers) => {
           ${type}
         </label>
         <input class="event__input  event__input--destination" id="event-destination-1" type="text"
-               name="event-destination" value="${destination ? destination.name : ''}}" list="destination-list-1"/>
+               name="event-destination" value="${destination ? destination.name : ''}" list="destination-list-1"/>
         <datalist id="destination-list-1">
           <option value="Chamonix"></option>
           <option value="Chamonix"></option>
@@ -144,13 +144,11 @@ export default class PointEditView extends AbstractView {
   #offers = null;
   #handleFormSubmit = null;
   #handleRollupClick = null;
-  constructor({point, destinations, offers, onFormSubmit, onRollupClick }) {
+  constructor({ point, destination, offers, onFormSubmit, onRollupClick }) {
     super();
     this.#point = point;
-    this.#destination = destinations.find((d) => d.id === point.destination);
-
-    const offersByType = offers.find((o) => o.type === point.type);
-    this.#offers = offersByType ? offersByType.offers : [];
+    this.#destination = destination;
+    this.#offers = offers;
 
     this.#handleFormSubmit = onFormSubmit;
     this.#handleRollupClick = onRollupClick;
@@ -160,11 +158,6 @@ export default class PointEditView extends AbstractView {
 
   get template() {
     return createPointEditTemplate(this.#point, this.#destination, this.#offers);
-  }
-
-  #setInnerHandlers() {
-    this.element.querySelector('form').addEventListener('submit', this.#formSubmitHandler);
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#rollupClickHandler);
   }
 
   // Обработчик отправки формы
@@ -178,4 +171,9 @@ export default class PointEditView extends AbstractView {
     evt.preventDefault();
     this.#handleRollupClick?.();
   };
+
+  #setInnerHandlers() {
+    this.element.querySelector('form').addEventListener('submit', this.#formSubmitHandler);
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#rollupClickHandler);
+  }
 }

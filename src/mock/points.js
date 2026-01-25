@@ -5,7 +5,7 @@ import { POINT_TYPES } from '../const.js';
 const mockDestinations = [
   {
     id: 'dest-1',
-    name: 'Chamonix', // Можно взять из констант, если очень хочется: DESTINATION_NAMES[0]
+    name: 'Chamonix',
     description: 'Chamonix-Mont-Blanc is a resort area...',
     pictures: [{src: 'https://22.objects.htmlacademy.pro/static/destinations/1.jpg', description: 'Chamonix'}]
   },

@@ -57,24 +57,16 @@ export default class PointView extends AbstractView{
   #point = null;
   #destination = null;
   #offers = null;
-  #handleEditClick = null; // Приватное поле для колбэка
+  #handleEditClick = null;
 
-  // Конструктор теперь принимает данные точки
-  constructor({ point, destinations, offers, onEditClick}) {
+  constructor({ point, destination, offers, onEditClick }) {
     super();
     this.#point = point;
+    this.#destination = destination;
 
-    // 1. Поиск данных СРАЗУ в конструкторе
-    this.#destination = destinations.find((d) => d.id === point.destination);
-
-    const offersByType = offers.find((o) => o.type === point.type);
-    this.#offers = offersByType
-      ? offersByType.offers.filter((o) => point.offers.includes(o.id))
-      : [];
+    this.#offers = offers.filter((o) => point.offers.includes(o.id));
 
     this.#handleEditClick = onEditClick;
-
-    // 2. Установка слушателей через отдельный приватный метод
     this.#setInnerHandlers();
   }
 

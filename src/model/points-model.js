@@ -1,7 +1,6 @@
 import { mockPoints, mockOffers, mockDestinations } from '../mock/points.js';
 
 export default class PointsModel {
-  // 1. Объявляем приватные поля, но не заполняем их сразу
   #points = mockPoints;
   #destinations = mockDestinations;
   #offers = mockOffers;
