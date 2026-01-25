@@ -1,58 +1,61 @@
-import {getRandomInteger, getRandomArrayElement} from '../utils.js';
 
-// Данные для генерации
-const DESTINATION_DESCRIPTIONS = [
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-  'Fusce tristique felis at fermentum pharetra.',
-  'Sed blandit, eros vel aliquam faucibus, purus ex euismod diam.'
-];
-
-//const DESTINATION_NAMES = ['Chamonix', 'Geneva', 'Amsterdam', 'Paris', 'Tokyo'];
+import { POINT_TYPES } from '../const.js';
 
 // 1. СТРУКТУРА ПУНКТА НАЗНАЧЕНИЯ (Destination)
 const mockDestinations = [
   {
     id: 'dest-1',
-    description: getRandomArrayElement(DESTINATION_DESCRIPTIONS),
     name: 'Chamonix',
-    pictures: Array.from({length: 4}, () => ({
-      src: '`24.objects.htmlacademy.pro{getRandomInteger(1, 15)}.jpg`',
-      description: 'Chamonix parliament building'
-    }))
+    description: 'Chamonix-Mont-Blanc is a resort area...',
+    pictures: [{src: 'https://22.objects.htmlacademy.pro/static/destinations/1.jpg', description: 'Chamonix'}]
   },
-  // добавить еще несколько объектов для Geneva и Amsterdam...
+  {
+    id: 'dest-2',
+    name: 'Amsterdam',
+    description: 'Amsterdam is a city with beautiful canals.',
+    pictures: [{src: 'https://22.objects.htmlacademy.pro/static/destinations/2.jpg', description: 'Amsterdam'}]
+  }
 ];
 
 // 2. СТРУКТУРА (Offers)
 const mockOffers = [
   {
-    type: 'taxi',
+    type: POINT_TYPES[0], // Используем константу 'taxi'
     offers: [
-      { id: '1', title: 'Upgrade to a business class', price: 120 },
-      { id: '2', title: 'Add luggage', price: 50 }
+      {id: 'off-1', title: 'Upgrade to business', price: 120},
+      {id: 'off-2', title: 'Add luggage', price: 50}
     ]
   },
   {
-    type: 'flight',
+    type: POINT_TYPES[5], // Используем константу 'flight'
     offers: [
-      { id: '3', title: 'Choose seats', price: 20 },
-      { id: '4', title: 'Add meal', price: 15 }
+      {id: 'off-3', title: 'Choose seats', price: 20}
     ]
   }
 ];
 
 // 3. СТРУКТУРА ТОЧКИ МАРШРУТА (Point)
-const getRandomPoint = () => ({
-  id: crypto.randomUUID(),// Генерируем уникальный ID
-  basePrice: getRandomInteger(100, 1500),
-  dateFrom: '2025-12-23T12:00:00.000Z',
-  dateTo: '2025-12-24T12:00:00.000Z',
-  destination: getRandomArrayElement(mockDestinations).id, // Ссылка на ID пункта
-  isFavorite: Boolean(getRandomInteger(0, 1)),
-  offers: [// Ссылки на ID офферов
-    mockOffers[0].offers[0].id
-  ],
-  type: getRandomArrayElement(['taxi', 'flight', 'bus', 'train', 'ship'])
-});
+const mockPoints = [
+  {
+    id: 'p-1',
+    basePrice: 1100,
+    dateFrom: '2026-01-24T12:00:00.000Z',
+    dateTo: '2026-01-24T13:30:00.000Z',
+    destination: 'dest-1',
+    isFavorite: false,
+    offers: ['off-1'],
+    type: POINT_TYPES[0] // 'taxi'
+  },
+  {
+    id: 'p-2',
+    basePrice: 500,
+    dateFrom: '2026-01-25T10:00:00.000Z',
+    dateTo: '2026-01-25T12:00:00.000Z',
+    destination: 'dest-2',
+    isFavorite: true,
+    offers: [],
+    type: POINT_TYPES[5] // 'flight'
+  }
+];
 
-export {getRandomPoint, mockDestinations, mockOffers};
+export {mockPoints, mockDestinations, mockOffers};

@@ -1,25 +1,33 @@
-import { getRandomPoint } from '../mock/points.js';
-
-const POINT_COUNT = 5; // Количество точек, которое мы хотим создать
+import { mockPoints, mockOffers, mockDestinations } from '../mock/points.js';
 
 export default class PointsModel {
-  // 1. Объявляем приватное поле, но не заполняем его сразу
-  #points = [];
+  #points = mockPoints;
+  #destinations = mockDestinations;
+  #offers = mockOffers;
 
-  // 2. Асинхронный метод для инициализации данных
-  async init() {
-    try {
-      // Имитируем получение данных (Array.from выполняется быстро, но await готовит нас к fetch)
-      this.#points = Array.from({ length: POINT_COUNT }, getRandomPoint);
-    } catch (err) {
-      this.#points = [];
-    }
-  }
-
-  // 3. Метод для получения всех точек
-  // Мы возвращаем копию массива [...], чтобы никто случайно не изменил данные внутри модели
   get points() {
     return [...this.#points];
   }
-}
 
+  get destinations() {
+    return [...this.#destinations];
+  }
+
+  get offers() {
+    return [...this.#offers];
+  }
+
+  // Метод поиска для удобства презентера
+  getDestinationById(id) {
+    return this.#destinations.find((dest) => dest.id === id);
+  }
+
+  getOffersByType(type) {
+    return this.#offers.find((offer) => offer.type === type)?.offers || [];
+  }
+
+  // Пустой init, так как данные статичны (для совместимости с main.js)
+  init() {
+    return Promise.resolve();
+  }
+}
