@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import {POINT_TYPES} from '../const.js';
+import { POINT_TYPES } from '../const.js';
 
 
 // 1. Шаблон типа события
@@ -89,7 +89,7 @@ const createPointEditTemplate = (point, destination, allOffers) => {
                name="event-destination" value="${destination ? destination.name : ''}" list="destination-list-1"/>
         <datalist id="destination-list-1">
           <option value="Chamonix"></option>
-          <option value="Chamonix"></option>
+          <option value="Amsterdam"></option>
         </datalist>
       </div>
 
@@ -157,6 +157,7 @@ export default class PointEditView extends AbstractView {
   }
 
   get template() {
+    // console.log('Проверка объекта города:', this.#destination);
     return createPointEditTemplate(this.#point, this.#destination, this.#offers);
   }
 

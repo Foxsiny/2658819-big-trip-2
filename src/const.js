@@ -2,6 +2,20 @@ const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-i
 
 const DESTINATION_NAMES = ['Chamonix', 'Geneva', 'Amsterdam', 'Paris', 'Tokyo'];
 
-const FILTER_TYPES = ['everything', 'future', 'present', 'past'];
+// Enum для типов фильтрации
+export const FilterType = {
+  EVERYTHING: 'everything',
+  FUTURE: 'future',
+  PRESENT: 'present',
+  PAST: 'past',
+};
 
-export { POINT_TYPES, DESTINATION_NAMES, FILTER_TYPES };
+// Enum для текстов заглушек
+export const NoPointsTextType = {
+  [FilterType.EVERYTHING]: 'Click New Event to create your first point',
+  [FilterType.FUTURE]: 'There are no future events now',
+  [FilterType.PRESENT]: 'There are no present events now',
+  [FilterType.PAST]: 'There are no past events now',
+};
+
+export { POINT_TYPES, DESTINATION_NAMES };
