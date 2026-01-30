@@ -26,6 +26,19 @@ export default class PointsModel {
     return this.#offers.find((offer) => offer.type === type)?.offers || [];
   }
 
+  get totalPrice() {
+    return this.#points.reduce((total, point) => {
+      // Используем уже созданный нами метод поиска офферов по типу
+      const offersByType = this.getOffersByType(point.type);
+
+      const selectedOffersCost = offersByType
+        .filter((o) => point.offers.includes(o.id))
+        .reduce((sum, o) => sum + o.price, 0);
+
+      return total + point.basePrice + selectedOffersCost;
+    }, 0);
+  }
+
   // Пустой init, так как данные статичны (для совместимости с main.js)
   init() {
     return Promise.resolve();
