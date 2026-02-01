@@ -65,7 +65,7 @@ export default class BoardPresenter {
       this.#pointsModel.getDestinationById(point.destination),
       this.#pointsModel.getOffersByType(point.type),
       this.#pointsModel.destinations, // ПЕРЕДАЕМ ВСЕ ГОРОДА
-      this.#pointsModel.offers        // ПЕРЕДАЕМ ВСЕ ОФФЕРЫ
+      this.#pointsModel.offers // ПЕРЕДАЕМ ВСЕ ОФФЕРЫ
     );
 
     // Сохраняем презентер в Map

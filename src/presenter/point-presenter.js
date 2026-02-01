@@ -39,7 +39,7 @@ export default class PointPresenter {
       destination,
       offers,
       allDestinations, // Все города для выпадающего списка
-      allOffers,       // Вообще все офферы всех типов
+      allOffers, // Вообще все офферы всех типов
       onFormSubmit: this.#handleFormSubmit,
       onRollupClick: this.#handleRollupClick,
     });
