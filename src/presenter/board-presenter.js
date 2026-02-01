@@ -56,16 +56,16 @@ export default class BoardPresenter {
   #renderPoint(point) {
     const pointPresenter = new PointPresenter({
       listContainer: this.#listComponent.element,
-      // Передаем метод обновления данных (понадобится для Favorite)
       onDataChange: this.#handlePointChange,
-      // Передаем метод закрытия других форм
       onModeChange: this.#handleModeChange
     });
 
     pointPresenter.init(
       point,
       this.#pointsModel.getDestinationById(point.destination),
-      this.#pointsModel.getOffersByType(point.type)
+      this.#pointsModel.getOffersByType(point.type),
+      this.#pointsModel.destinations, // ПЕРЕДАЕМ ВСЕ ГОРОДА
+      this.#pointsModel.offers        // ПЕРЕДАЕМ ВСЕ ОФФЕРЫ
     );
 
     // Сохраняем презентер в Map

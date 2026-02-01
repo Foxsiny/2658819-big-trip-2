@@ -20,7 +20,7 @@ export default class PointPresenter {
     this.#handleModeChange = onModeChange;
   }
 
-  init(point, destination, offers) {
+  init(point, destination, offers, allDestinations, allOffers) {
     this.#point = point;
 
     const prevPointComponent = this.#pointComponent;
@@ -38,6 +38,8 @@ export default class PointPresenter {
       point: this.#point,
       destination,
       offers,
+      allDestinations, // Все города для выпадающего списка
+      allOffers,       // Вообще все офферы всех типов
       onFormSubmit: this.#handleFormSubmit,
       onRollupClick: this.#handleRollupClick,
     });
