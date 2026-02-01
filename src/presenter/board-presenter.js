@@ -84,7 +84,9 @@ export default class BoardPresenter {
     this.#pointPresenters.get(updatedPoint.id).init(
       updatedPoint,
       this.#pointsModel.getDestinationById(updatedPoint.destination),
-      this.#pointsModel.getOffersByType(updatedPoint.type)
+      this.#pointsModel.getOffersByType(updatedPoint.type),
+      this.#pointsModel.destinations,
+      this.#pointsModel.offers
     );
   };
 
