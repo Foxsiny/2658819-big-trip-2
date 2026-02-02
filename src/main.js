@@ -27,7 +27,7 @@ pointsModel.init().finally(() => {
     render(new TripInfoView({
       points: points,
       destinations: pointsModel.destinations,
-      offers: pointsModel.offers
+      totalCost: pointsModel.totalPrice
     }), siteHeaderElement, RenderPosition.AFTERBEGIN);
   }
   // Фильтры генерируются ТОЛЬКО после того, как данные в модели готовы

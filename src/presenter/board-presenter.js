@@ -1,16 +1,19 @@
-import { render, replace } from '../framework/render.js';
+import { render } from '../framework/render.js';
 import SortingView from '../view/sorting-view.js';
 import ListView from '../view/list-view.js';
-import PointView from '../view/point-view.js';
-import PointEditView from '../view/point-edit-view.js';
 import NoPointView from '../view/no-point-view.js'; // Импортируем заглушку
 import { FilterType } from '../const.js';
+import PointPresenter from './point-presenter.js';
+import { updateItem } from '../utils/common.js';
 
 export default class BoardPresenter {
   #listComponent = new ListView();
   #boardContainer = null;
   #pointsModel = null;
   #boardPoints = [];
+
+  // Хранилище для всех презентеров точек (ID точки -> Презентер точки)
+  #pointPresenters = new Map();
 
   constructor({boardContainer, pointsModel}) {
     this.#boardContainer = boardContainer;
@@ -24,73 +27,71 @@ export default class BoardPresenter {
 
   // Вспомогательный приватный метод для отрисовки всей "доски"
   #renderBoard() {
-    // 1. Если точек нет, показываем только заглушку
     if (this.#boardPoints.length === 0) {
-      render(new NoPointView({
-        filterType: FilterType.FUTURE
-        // filterType: FilterType.EVERYTHING // Пока передаем дефолтный тип
-      }), this.#boardContainer);
-
-      return; // Прекращаем выполнение, чтобы не рисовать сортировку и список
+      this.#renderNoPoints();
+      return;
     }
 
-    // 2. Если точки есть, рисуем всё остальное
-    render(new SortingView(), this.#boardContainer);
-    render(this.#listComponent, this.#boardContainer);
-
-    this.#boardPoints.forEach((point) => {
-      this.#renderPoint(point);
-    });
+    this.#renderSort();
+    this.#renderList();
   }
+
+  #renderNoPoints() {
+    render(new NoPointView({
+      filterType: FilterType.EVERYTHING
+    }), this.#boardContainer);
+  }
+
+  #renderSort() {
+    render(new SortingView(), this.#boardContainer);
+  }
+
+  #renderList() {
+    render(this.#listComponent, this.#boardContainer);
+    this.#boardPoints.forEach((point) => this.#renderPoint(point));
+  }
+
 
   // Приватный метод для отрисовки одной точки
   #renderPoint(point) {
-    // 1. Объявляем переменные через let (они пока пустые)
-    let pointComponent = null;
-    let pointEditComponent = null;
-
-    const replaceCardToForm = () => {
-      replace(pointEditComponent, pointComponent);
-    };
-
-    const replaceFormToCard = () => {
-      replace(pointComponent, pointEditComponent);
-    };
-
-    const escKeyDownHandler = (evt) => {
-      if (evt.key === 'Escape') {
-        evt.preventDefault();
-        replaceFormToCard();
-        document.removeEventListener('keydown', escKeyDownHandler);
-      }
-    };
-
-    // Создаем карточку (готовый компонент): передаем ГОТОВЫЙ город и ГОТОВЫЕ офферы
-    pointComponent = new PointView({
-      point,
-      destination: this.#pointsModel.getDestinationById(point.destination), // Готовый объект города
-      offers: this.#pointsModel.getOffersByType(point.type), // Массив офферов именно этого типа
-      onEditClick: () => {
-        replaceCardToForm();
-        document.addEventListener('keydown', escKeyDownHandler);
-      },
+    const pointPresenter = new PointPresenter({
+      listContainer: this.#listComponent.element,
+      onDataChange: this.#handlePointChange,
+      onModeChange: this.#handleModeChange
     });
 
-    // Создаем компонент формы редактирования
-    pointEditComponent = new PointEditView({
+    pointPresenter.init(
       point,
-      destination: this.#pointsModel.getDestinationById(point.destination),
-      offers: this.#pointsModel.getOffersByType(point.type),
-      onFormSubmit: () => {
-        replaceFormToCard();
-        document.removeEventListener('keydown', escKeyDownHandler);
-      },
-      onRollupClick: () => {
-        replaceFormToCard();
-        document.removeEventListener('keydown', escKeyDownHandler);
-      },
-    });
+      this.#pointsModel.getDestinationById(point.destination),
+      this.#pointsModel.getOffersByType(point.type),
+      this.#pointsModel.destinations, // ПЕРЕДАЕМ ВСЕ ГОРОДА
+      this.#pointsModel.offers // ПЕРЕДАЕМ ВСЕ ОФФЕРЫ
+    );
 
-    render(pointComponent, this.#listComponent.element);
+    // Сохраняем презентер в Map
+    this.#pointPresenters.set(point.id, pointPresenter);
   }
+
+  // Очистка списка (пригодится при сортировке)
+  #clearPointList() {
+    this.#pointPresenters.forEach((presenter) => presenter.destroy());
+    this.#pointPresenters.clear();
+  }
+
+  // Обработчик изменения точки (например, Favorite)
+  #handlePointChange = (updatedPoint) => {
+    this.#boardPoints = updateItem(this.#boardPoints, updatedPoint);
+    this.#pointPresenters.get(updatedPoint.id).init(
+      updatedPoint,
+      this.#pointsModel.getDestinationById(updatedPoint.destination),
+      this.#pointsModel.getOffersByType(updatedPoint.type),
+      this.#pointsModel.destinations,
+      this.#pointsModel.offers
+    );
+  };
+
+  // Метод, который закрывает все открытые формы
+  #handleModeChange = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
 }

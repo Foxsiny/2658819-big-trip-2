@@ -58,8 +58,9 @@ export default class PointView extends AbstractView{
   #destination = null;
   #offers = null;
   #handleEditClick = null;
+  #handleFavoriteClick = null; // Новое поле для колбэка
 
-  constructor({ point, destination, offers, onEditClick }) {
+  constructor({ point, destination, offers, onEditClick, onFavoriteClick }) {
     super();
     this.#point = point;
     this.#destination = destination;
@@ -67,6 +68,7 @@ export default class PointView extends AbstractView{
     this.#offers = offers.filter((o) => point.offers.includes(o.id));
 
     this.#handleEditClick = onEditClick;
+    this.#handleFavoriteClick = onFavoriteClick; // Сохраняем
     this.#setInnerHandlers();
   }
 
@@ -84,5 +86,15 @@ export default class PointView extends AbstractView{
   #setInnerHandlers() {
     this.element.querySelector('.event__rollup-btn')
       .addEventListener('click', this.#editClickHandler);
+
+    // Добавляем слушатель на звездочку
+    this.element.querySelector('.event__favorite-btn')
+      .addEventListener('click', this.#favoriteClickHandler);
   }
+
+  // Новый обработчик
+  #favoriteClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFavoriteClick?.();
+  };
 }

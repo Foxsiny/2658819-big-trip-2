@@ -142,13 +142,24 @@ export default class PointEditView extends AbstractView {
   #point = null;
   #destination = null;
   #offers = null;
+
+  // 1. Объявляем новые приватные поля
+  #allDestinations = null;
+  #allOffers = null;
+
   #handleFormSubmit = null;
   #handleRollupClick = null;
-  constructor({ point, destination, offers, onFormSubmit, onRollupClick }) {
+
+  // 2. Добавляем allDestinations и allOffers в аргументы
+  constructor({ point, destination, offers, allDestinations, allOffers, onFormSubmit, onRollupClick }) {
     super();
     this.#point = point;
     this.#destination = destination;
     this.#offers = offers;
+
+    // 3. Сохраняем "рюкзак" со всеми данными
+    this.#allDestinations = allDestinations;
+    this.#allOffers = allOffers;
 
     this.#handleFormSubmit = onFormSubmit;
     this.#handleRollupClick = onRollupClick;
@@ -157,7 +168,7 @@ export default class PointEditView extends AbstractView {
   }
 
   get template() {
-    // console.log('Проверка объекта города:', this.#destination);
+    // Пока не будем передавать данные allDestinations и allOffers в функцию шаблона
     return createPointEditTemplate(this.#point, this.#destination, this.#offers);
   }
 
