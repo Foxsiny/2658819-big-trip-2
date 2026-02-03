@@ -1,14 +1,11 @@
 import AbstractView from '../framework/view/abstract-view.js';
-
-
-const SORT_TYPES = ['day', 'event', 'time', 'price', 'offers'];
+import { SORT_TYPES } from '../const.js';
 
 // Шаблон одного элемента сортировки
-const createSortingItemTemplate = (type) => {
-  // Колонки Event и Offers не поддерживают сортировку по ТЗ
-  const isDisabled = (type === 'event' || type === 'offers') ? 'disabled' : '';
-  // По умолчанию выбрана сортировка по дням (Day)
-  const isChecked = (type === 'day') ? 'checked' : '';
+const createSortingItemTemplate = (sortItem, currentSortType) => {
+  const {type, isDisabled} = sortItem;
+
+  const isChecked = (type === currentSortType) ? 'checked' : '';
 
   return `
     <div class="trip-sort__item  trip-sort__item--${type}">
@@ -21,22 +18,48 @@ const createSortingItemTemplate = (type) => {
         ${isChecked}
         ${isDisabled}
       >
-      <label class="trip-sort__btn" for="sort-${type}">${type}</label>
+      <label class="trip-sort__btn" for="sort-${type}" data-sort-type="${type}">${type}</label>
     </div>
   `;
 };
 
 // Общий шаблон формы сортировки
-const createSortingTemplate = () => `
+const createSortingTemplate = (currentSortType) => `
   <form class="trip-events__trip-sort  trip-sort" action="#" method="get">
-    ${SORT_TYPES.map((type) => createSortingItemTemplate(type)).join('')}
+    ${SORT_TYPES.map((sortItem) => createSortingItemTemplate(sortItem, currentSortType)).join('')}
   </form>
 `;
 
-// Наследуемся от AbstractView
 export default class SortingView extends AbstractView {
-  get template() {
-    return createSortingTemplate();
+  #handleSortTypeChange = null;
+  #currentSortType = null; // Добавляем поле для хранения текущего выбора
+
+  // Теперь принимаем currentSortType из Презентера
+  constructor({currentSortType, onSortTypeChange}) {
+    super();
+    this.#currentSortType = currentSortType;
+    this.#handleSortTypeChange = onSortTypeChange;
+
+    this.element.addEventListener('click', this.#sortTypeChangeHandler);
   }
+
+  get template() {
+    return createSortingTemplate(this.#currentSortType);
+  }
+
+  #sortTypeChangeHandler = (evt) => {
+    if (evt.target.tagName !== 'LABEL') {
+      return;
+    }
+
+    const sortType = evt.target.dataset.sortType;
+
+    // Если у лейбла нет атрибута (клик по Event или Offers), ничего не делаем
+    if (!sortType) {
+      return;
+    }
+
+    this.#handleSortTypeChange?.(sortType);
+  };
 }
 

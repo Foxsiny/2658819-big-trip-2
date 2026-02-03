@@ -1,8 +1,8 @@
-import AbstractView from '../framework/view/abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { POINT_TYPES } from '../const.js';
 
 
-// 1. Шаблон типа события
+// Шаблон типа события
 const createEventTypeItemTemplate = (type, currentType) => `
   <div class="event__type-item">
     <input
@@ -19,7 +19,7 @@ const createEventTypeItemTemplate = (type, currentType) => `
   </div>
 `;
 
-// 2. Шаблон одного оффера
+// Шаблон одного оффера
 const createOfferSelectorTemplate = (offer, isChecked) => {
   const {id, title, price} = offer;
 
@@ -41,7 +41,7 @@ const createOfferSelectorTemplate = (offer, isChecked) => {
   `;
 };
 
-// 3. Функция секции офферов
+// Функция секции офферов
 const createOffersSectionTemplate = (allOffers, selectedOfferIds) => {
   if (allOffers.length === 0) {
     return '';
@@ -56,9 +56,13 @@ const createOffersSectionTemplate = (allOffers, selectedOfferIds) => {
     </section>`;
 };
 
-// 4. Основная функция шаблона
-const createPointEditTemplate = (point, destination, allOffers) => {
-  const {type, basePrice, offers: selectedOfferIds} = point;
+// Основная функция шаблона
+const createPointEditTemplate = (state, allDestinations, allOffers) => {
+  const {type, basePrice, destination: destinationId, offers: selectedOfferIds} = state;
+
+  const pointDestination = allDestinations.find((dest) => dest.id === destinationId);
+
+  const offersByType = allOffers.find((offer) => offer.type === type)?.offers || [];
 
   return `
   <li class="trip-events__item">
@@ -85,11 +89,15 @@ const createPointEditTemplate = (point, destination, allOffers) => {
         <label class="event__label  event__type-output" for="event-destination-1">
           ${type}
         </label>
-        <input class="event__input  event__input--destination" id="event-destination-1" type="text"
-               name="event-destination" value="${destination ? destination.name : ''}" list="destination-list-1"/>
+        <input
+          class="event__input  event__input--destination"
+          id="event-destination-1" type="text"
+          name="event-destination"
+          value="${pointDestination ? pointDestination.name : ''}"
+          list="destination-list-1"
+        >
         <datalist id="destination-list-1">
-          <option value="Chamonix"></option>
-          <option value="Amsterdam"></option>
+          ${allDestinations.map((dest) => `<option value="${dest.name}"></option>`).join('')}
         </datalist>
       </div>
 
@@ -119,16 +127,16 @@ const createPointEditTemplate = (point, destination, allOffers) => {
       </button>
     </header>
     <section class="event__details">
-     ${createOffersSectionTemplate(allOffers, selectedOfferIds)}
+     ${createOffersSectionTemplate(offersByType, selectedOfferIds)}
 
-      ${destination ? `
+      ${pointDestination ? `
         <section class="event__section  event__section--destination">
           <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-          <p class="event__destination-description">${destination.description}</p>
-          ${destination.pictures.length > 0 ? `
+          <p class="event__destination-description">${pointDestination.description}</p>
+          ${pointDestination.pictures.length > 0 ? `
             <div class="event__photos-container">
               <div class="event__photos-tape">
-                ${destination.pictures.map((pic) => `<img class="event__photo" src="${pic.src}" alt="${pic.description}">`).join('')}
+                ${pointDestination.pictures.map((pic) => `<img class="event__photo" src="${pic.src}" alt="${pic.description}">`).join('')}
               </div>
             </div>` : ''}
         </section>` : ''}
@@ -138,44 +146,85 @@ const createPointEditTemplate = (point, destination, allOffers) => {
   `;
 };
 
-export default class PointEditView extends AbstractView {
-  #point = null;
-  #destination = null;
-  #offers = null;
-
-  // 1. Объявляем новые приватные поля
+export default class PointEditView extends AbstractStatefulView {
   #allDestinations = null;
   #allOffers = null;
-
   #handleFormSubmit = null;
   #handleRollupClick = null;
 
-  // 2. Добавляем allDestinations и allOffers в аргументы
-  constructor({ point, destination, offers, allDestinations, allOffers, onFormSubmit, onRollupClick }) {
+  constructor({ point, allDestinations, allOffers, onFormSubmit, onRollupClick }) {
     super();
-    this.#point = point;
-    this.#destination = destination;
-    this.#offers = offers;
 
-    // 3. Сохраняем "рюкзак" со всеми данными
+    // console.log('--- ПРОВЕРКА ДАННЫХ В ФОРМЕ ---');
+    // console.log('Объект точки:', point);
+    // console.log('Массив всех городов:', allDestinations);
+    // console.log('Количество городов в списке:', allDestinations?.length);
+
+    // Вместо прямого сохранения point, создаем состояние
+    this._setState(PointEditView.parsePointToState(point));
+
     this.#allDestinations = allDestinations;
     this.#allOffers = allOffers;
 
     this.#handleFormSubmit = onFormSubmit;
     this.#handleRollupClick = onRollupClick;
 
-    this.#setInnerHandlers();
+    this._restoreHandlers();
   }
 
   get template() {
-    // Пока не будем передавать данные allDestinations и allOffers в функцию шаблона
-    return createPointEditTemplate(this.#point, this.#destination, this.#offers);
+    return createPointEditTemplate(
+      this._state, // Передаем состояние вместо чистой точки
+      this.#allDestinations,
+      this.#allOffers);
   }
+
+  // Метод, который AbstractStatefulView вызывает автоматически при перерисовке
+  _restoreHandlers() {
+    this.element.querySelector('form')
+      .addEventListener('submit', this.#formSubmitHandler);
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#rollupClickHandler);
+
+    // Сюда мы добавим новые обработчики выбора типа и города
+    this.element.querySelector('.event__type-group')
+      .addEventListener('change', this.#typeChangeHandler);
+    this.element.querySelector('.event__input--destination')
+      .addEventListener('change', this.#destinationChangeHandler);
+  }
+
+  // Вспомогательный метод для сброса состояния (нужен при отмене редактирования)
+  reset(point) {
+    this.updateElement(
+      PointEditView.parsePointToState(point),
+    );
+  }
+
+  #typeChangeHandler = (evt) => {
+    evt.preventDefault();
+    this.updateElement({
+      type: evt.target.value,
+      offers: [], // При смене типа сбрасываем выбранные офферы
+    });
+  };
+
+  #destinationChangeHandler = (evt) => {
+    evt.preventDefault();
+    const selectedDestination = this.#allDestinations.find((dest) => dest.name === evt.target.value);
+
+    if (!selectedDestination) {
+      return;
+    }
+
+    this.updateElement({
+      destination: selectedDestination.id,
+    });
+  };
 
   // Обработчик отправки формы
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit?.();
+    this.#handleFormSubmit?.(PointEditView.parseStateToPoint(this._state));
   };
 
   // Обработчик клика по стрелочке вверх
@@ -184,8 +233,11 @@ export default class PointEditView extends AbstractView {
     this.#handleRollupClick?.();
   };
 
-  #setInnerHandlers() {
-    this.element.querySelector('form').addEventListener('submit', this.#formSubmitHandler);
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#rollupClickHandler);
+  static parsePointToState(point) {
+    return { ...point };
+  }
+
+  static parseStateToPoint(state) {
+    return { ...state };
   }
 }
