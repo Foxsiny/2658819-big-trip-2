@@ -23,4 +23,20 @@ const Mode = {
   EDITING: 'EDITING',
 };
 
-export { POINT_TYPES, DESTINATION_NAMES, NoPointsTextType, FilterType, Mode };
+const SortType = {
+  DAY: 'day',
+  EVENT: 'event',
+  TIME: 'time',
+  PRICE: 'price',
+  OFFERS: 'offers',
+};
+
+const SORT_TYPES = [
+  {type: SortType.DAY, isDisabled: false},
+  {type: SortType.EVENT, isDisabled: true},
+  {type: SortType.TIME, isDisabled: false},
+  {type: SortType.PRICE, isDisabled: false},
+  {type: SortType.OFFERS, isDisabled: true},
+];
+
+export { POINT_TYPES, DESTINATION_NAMES, NoPointsTextType, FilterType, Mode, SortType, SORT_TYPES };

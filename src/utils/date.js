@@ -15,10 +15,26 @@ const isPointPresent = (dateFrom, dateTo) => {
     (dayjs(dateTo).isSame(now, 'D') || dayjs(dateTo).isAfter(now, 'D'));
 };
 
+// Сортировка по дате (от ранних к поздним)
+const sortPointDay = (pointA, pointB) => dayjs(pointA.dateFrom).diff(dayjs(pointB.dateFrom));
+
+// Сортировка по времени (от долгого к короткому)
+const sortPointTime = (pointA, pointB) => {
+  const durationA = dayjs(pointA.dateTo).diff(dayjs(pointA.dateFrom));
+  const durationB = dayjs(pointB.dateTo).diff(dayjs(pointB.dateFrom));
+  return durationB - durationA;
+};
+
+// Сортировка по цене (от дорогого к дешевому)
+const sortPointPrice = (pointA, pointB) => pointB.basePrice - pointA.basePrice;
+
 export {
   humanizePointDate,
   humanizePointTime,
   isPointFuture,
   isPointPast,
-  isPointPresent
+  isPointPresent,
+  sortPointDay,
+  sortPointTime,
+  sortPointPrice
 };
