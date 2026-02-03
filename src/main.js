@@ -1,38 +1,29 @@
-import {render, RenderPosition } from './framework/render.js';
+
 import PointsModel from './model/points-model.js';
-import FilterView from './view/filter-view.js';
-import BoardPresenter from './presenter/board-presenter.js';
 import { generateFilter } from './mock/filter.js'; // Импортируем генератор данных для фильтров
-import TripInfoView from './view/trip-info-view.js';
+import MainPresenter from './presenter/main-presenter.js';
 
-const siteHeaderElement = document.querySelector('.trip-main');
-const siteFilterElement = siteHeaderElement.querySelector('.trip-controls__filters');
-const siteEventsElement = document.querySelector('.trip-events');
+// 1. Сначала находим все элементы в DOM
+const tripMainElement = document.querySelector('.trip-main');
+const filterElement = tripMainElement.querySelector('.trip-controls__filters');
+const tripEventsElement = document.querySelector('.trip-events');
 
-// Создаем экземпляр модели
+// 2. Создаем экземпляр модели
 const pointsModel = new PointsModel();
 
-// Создаем экземпляр презентера
-const boardPresenter = new BoardPresenter({
-  boardContainer: siteEventsElement,
+const filters = generateFilter(pointsModel.points);
+
+// 3. Создаем главный презентер и передаем ему эти элементы
+const mainPresenter = new MainPresenter({
+  tripMainContainer: tripMainElement,
+  filterContainer: filterElement,
+  eventsContainer: tripEventsElement,
   pointsModel: pointsModel,
+  filters: filters,
 });
+
+mainPresenter.init();
 
 // ЗАПУСК ПРИЛОЖЕНИЯ
 // Вызываем асинхронный init у модели.
-pointsModel.init().finally(() => {
-  const points = pointsModel.points;
-
-  if (points.length > 0) {
-    render(new TripInfoView({
-      points: points,
-      destinations: pointsModel.destinations,
-      totalCost: pointsModel.totalPrice
-    }), siteHeaderElement, RenderPosition.AFTERBEGIN);
-  }
-  // Фильтры генерируются ТОЛЬКО после того, как данные в модели готовы
-  const filters = generateFilter(pointsModel.points);
-  render(new FilterView({ filters }), siteFilterElement);
-
-  boardPresenter.init();
-});
+pointsModel.init();
