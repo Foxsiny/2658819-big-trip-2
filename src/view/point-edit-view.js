@@ -30,6 +30,7 @@ const createOfferSelectorTemplate = (offer, isChecked) => {
         id="event-offer-${id}-1"
         type="checkbox"
         name="event-offer-${id}"
+        data-offer-id="${id}"
         ${isChecked ? 'checked' : ''}
       >
       <label class="event__offer-label" for="event-offer-${id}-1">
@@ -155,11 +156,6 @@ export default class PointEditView extends AbstractStatefulView {
   constructor({ point, destinations, offers, onFormSubmit, onRollupClick }) {
     super();
 
-    // console.log('--- ПРОВЕРКА ДАННЫХ В ФОРМЕ ---');
-    // console.log('Объект точки:', point);
-    // console.log('Массив всех городов:', allDestinations);
-    // console.log('Количество городов в списке:', allDestinations?.length);
-
     // Вместо прямого сохранения point, создаем состояние
     this._setState(PointEditView.parsePointToState(point));
 
@@ -191,6 +187,14 @@ export default class PointEditView extends AbstractStatefulView {
       .addEventListener('change', this.#typeChangeHandler);
     this.element.querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
+
+    // Добавляем слушатель на контейнер с офферами
+    this.element.querySelector('.event__available-offers')
+      ?.addEventListener('change', this.#offerChangeHandler);
+
+    // И на поле цены
+    this.element.querySelector('.event__input--price')
+      .addEventListener('input', this.#priceChangeHandler);
   }
 
   // Вспомогательный метод для сброса состояния (нужен при отмене редактирования)
@@ -218,6 +222,37 @@ export default class PointEditView extends AbstractStatefulView {
 
     this.updateElement({
       destination: selectedDestination.id,
+    });
+  };
+
+  #offerChangeHandler = (evt) => {
+    evt.preventDefault();
+
+    // Достаем ID напрямую из data-атрибута
+    const checkedOfferId = evt.target.dataset.offerId;
+    // Копируем текущий массив офферов из стейта
+    const currentOffers = [...this._state.offers];
+    // Проверяем, есть ли уже этот оффер в списке
+    const index = currentOffers.indexOf(checkedOfferId);
+
+    if (index === -1) {
+      currentOffers.push(checkedOfferId);
+    } else {
+      currentOffers.splice(index, 1);
+    }
+
+    // Обновляем состояние БЕЗ перерисовки всей формы
+    this._setState({
+      offers: currentOffers,
+    });
+  };
+
+  #priceChangeHandler = (evt) => {
+    evt.preventDefault();
+
+    // Обновляем стейт "тихо" (через _setState), чтобы форма не моргала при вводе
+    this._setState({
+      basePrice: Number(evt.target.value),
     });
   };
 
