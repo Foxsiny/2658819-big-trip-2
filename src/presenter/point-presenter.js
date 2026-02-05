@@ -20,11 +20,11 @@ export default class PointPresenter {
     this.#handleModeChange = onModeChange;
   }
 
-  init(point, allDestinations, allOffers) {
+  init(point, destinations, offers) {
     this.#point = point;
 
-    const destination = allDestinations.find((d) => d.id === point.destination);
-    const offers = allOffers.find((o) => o.type === point.type)?.offers || [];
+    const destination = destinations.find((d) => d.id === point.destination);
+    const pointOffers = offers.find((o) => o.type === point.type)?.offers || [];
 
     const prevPointComponent = this.#pointComponent;
     const prevPointEditComponent = this.#pointEditComponent;
@@ -32,15 +32,15 @@ export default class PointPresenter {
     this.#pointComponent = new PointView({
       point: this.#point,
       destination, // Передаем конкретный объект
-      offers, // Передаем конкретный массив
+      offers: pointOffers, // Передаем конкретный массив
       onEditClick: this.#handleEditClick,
       onFavoriteClick: this.#handleFavoriteClick,
     });
 
     this.#pointEditComponent = new PointEditView({
       point: this.#point,
-      allDestinations, // Все города для выпадающего списка
-      allOffers, // Вообще все офферы всех типов
+      destinations, // Все города для выпадающего списка
+      offers, // Вообще все офферы всех типов
       onFormSubmit: this.#handleFormSubmit,
       onRollupClick: this.#handleRollupClick,
     });

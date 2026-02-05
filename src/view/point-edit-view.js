@@ -30,6 +30,7 @@ const createOfferSelectorTemplate = (offer, isChecked) => {
         id="event-offer-${id}-1"
         type="checkbox"
         name="event-offer-${id}"
+        data-offer-id="${id}"
         ${isChecked ? 'checked' : ''}
       >
       <label class="event__offer-label" for="event-offer-${id}-1">
@@ -42,8 +43,8 @@ const createOfferSelectorTemplate = (offer, isChecked) => {
 };
 
 // Функция секции офферов
-const createOffersSectionTemplate = (allOffers, selectedOfferIds) => {
-  if (allOffers.length === 0) {
+const createOffersSectionTemplate = (offers, selectedOfferIds) => {
+  if (offers.length === 0) {
     return '';
   }
 
@@ -51,18 +52,18 @@ const createOffersSectionTemplate = (allOffers, selectedOfferIds) => {
     <section class="event__section  event__section--offers">
       <h3 class="event__section-title  event__section-title--offers">Offers</h3>
       <div class="event__available-offers">
-        ${allOffers.map((offer) => createOfferSelectorTemplate(offer, selectedOfferIds.includes(offer.id))).join('')}
+        ${offers.map((offer) => createOfferSelectorTemplate(offer, selectedOfferIds.includes(offer.id))).join('')}
       </div>
     </section>`;
 };
 
 // Основная функция шаблона
-const createPointEditTemplate = (state, allDestinations, allOffers) => {
+const createPointEditTemplate = (state, destinations, offers) => {
   const {type, basePrice, destination: destinationId, offers: selectedOfferIds} = state;
 
-  const pointDestination = allDestinations.find((dest) => dest.id === destinationId);
+  const pointDestination = destinations.find((dest) => dest.id === destinationId);
 
-  const offersByType = allOffers.find((offer) => offer.type === type)?.offers || [];
+  const offersByType = offers.find((offer) => offer.type === type)?.offers || [];
 
   return `
   <li class="trip-events__item">
@@ -97,7 +98,7 @@ const createPointEditTemplate = (state, allDestinations, allOffers) => {
           list="destination-list-1"
         >
         <datalist id="destination-list-1">
-          ${allDestinations.map((dest) => `<option value="${dest.name}"></option>`).join('')}
+          ${destinations.map((dest) => `<option value="${dest.name}"></option>`).join('')}
         </datalist>
       </div>
 
@@ -147,24 +148,19 @@ const createPointEditTemplate = (state, allDestinations, allOffers) => {
 };
 
 export default class PointEditView extends AbstractStatefulView {
-  #allDestinations = null;
-  #allOffers = null;
+  #destinations = null;
+  #offers = null;
   #handleFormSubmit = null;
   #handleRollupClick = null;
 
-  constructor({ point, allDestinations, allOffers, onFormSubmit, onRollupClick }) {
+  constructor({ point, destinations, offers, onFormSubmit, onRollupClick }) {
     super();
-
-    // console.log('--- ПРОВЕРКА ДАННЫХ В ФОРМЕ ---');
-    // console.log('Объект точки:', point);
-    // console.log('Массив всех городов:', allDestinations);
-    // console.log('Количество городов в списке:', allDestinations?.length);
 
     // Вместо прямого сохранения point, создаем состояние
     this._setState(PointEditView.parsePointToState(point));
 
-    this.#allDestinations = allDestinations;
-    this.#allOffers = allOffers;
+    this.#destinations = destinations;
+    this.#offers = offers;
 
     this.#handleFormSubmit = onFormSubmit;
     this.#handleRollupClick = onRollupClick;
@@ -175,8 +171,8 @@ export default class PointEditView extends AbstractStatefulView {
   get template() {
     return createPointEditTemplate(
       this._state, // Передаем состояние вместо чистой точки
-      this.#allDestinations,
-      this.#allOffers);
+      this.#destinations,
+      this.#offers);
   }
 
   // Метод, который AbstractStatefulView вызывает автоматически при перерисовке
@@ -191,6 +187,14 @@ export default class PointEditView extends AbstractStatefulView {
       .addEventListener('change', this.#typeChangeHandler);
     this.element.querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
+
+    // Добавляем слушатель на контейнер с офферами
+    this.element.querySelector('.event__available-offers')
+      ?.addEventListener('change', this.#offerChangeHandler);
+
+    // И на поле цены
+    this.element.querySelector('.event__input--price')
+      .addEventListener('input', this.#priceChangeHandler);
   }
 
   // Вспомогательный метод для сброса состояния (нужен при отмене редактирования)
@@ -210,7 +214,7 @@ export default class PointEditView extends AbstractStatefulView {
 
   #destinationChangeHandler = (evt) => {
     evt.preventDefault();
-    const selectedDestination = this.#allDestinations.find((dest) => dest.name === evt.target.value);
+    const selectedDestination = this.#destinations.find((dest) => dest.name === evt.target.value);
 
     if (!selectedDestination) {
       return;
@@ -218,6 +222,37 @@ export default class PointEditView extends AbstractStatefulView {
 
     this.updateElement({
       destination: selectedDestination.id,
+    });
+  };
+
+  #offerChangeHandler = (evt) => {
+    evt.preventDefault();
+
+    // Достаем ID напрямую из data-атрибута
+    const checkedOfferId = evt.target.dataset.offerId;
+    // Копируем текущий массив офферов из стейта
+    const currentOffers = [...this._state.offers];
+    // Проверяем, есть ли уже этот оффер в списке
+    const index = currentOffers.indexOf(checkedOfferId);
+
+    if (index === -1) {
+      currentOffers.push(checkedOfferId);
+    } else {
+      currentOffers.splice(index, 1);
+    }
+
+    // Обновляем состояние БЕЗ перерисовки всей формы
+    this._setState({
+      offers: currentOffers,
+    });
+  };
+
+  #priceChangeHandler = (evt) => {
+    evt.preventDefault();
+
+    // Обновляем стейт "тихо" (через _setState), чтобы форма не моргала при вводе
+    this._setState({
+      basePrice: Number(evt.target.value),
     });
   };
 
