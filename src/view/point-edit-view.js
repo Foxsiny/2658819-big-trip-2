@@ -1,5 +1,7 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { POINT_TYPES } from '../const.js';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 
 // Шаблон типа события
@@ -152,6 +154,8 @@ export default class PointEditView extends AbstractStatefulView {
   #offers = null;
   #handleFormSubmit = null;
   #handleRollupClick = null;
+  #datepickerFrom = null;
+  #datepickerTo = null;
 
   constructor({ point, destinations, offers, onFormSubmit, onRollupClick }) {
     super();
@@ -165,6 +169,16 @@ export default class PointEditView extends AbstractStatefulView {
     this.#handleFormSubmit = onFormSubmit;
     this.#handleRollupClick = onRollupClick;
 
+    if (this.#datepickerFrom) {
+      this.#datepickerFrom.destroy();
+      this.#datepickerFrom = null;
+    }
+
+    if (this.#datepickerTo) {
+      this.#datepickerTo.destroy();
+      this.#datepickerTo = null;
+    }
+
     this._restoreHandlers();
   }
 
@@ -175,6 +189,20 @@ export default class PointEditView extends AbstractStatefulView {
       this.#offers);
   }
 
+  removeElement() {
+    super.removeElement();
+
+    if (this.#datepickerFrom) {
+      this.#datepickerFrom.destroy();
+      this.#datepickerFrom = null;
+    }
+
+    if (this.#datepickerTo) {
+      this.#datepickerTo.destroy();
+      this.#datepickerTo = null;
+    }
+  }
+
   // Метод, который AbstractStatefulView вызывает автоматически при перерисовке
   _restoreHandlers() {
     this.element.querySelector('form')
@@ -183,6 +211,7 @@ export default class PointEditView extends AbstractStatefulView {
       .addEventListener('click', this.#rollupClickHandler);
 
     // Сюда мы добавим новые обработчики выбора типа и города
+    // noinspection DuplicatedCode
     this.element.querySelector('.event__type-group')
       .addEventListener('change', this.#typeChangeHandler);
     this.element.querySelector('.event__input--destination')
@@ -195,6 +224,8 @@ export default class PointEditView extends AbstractStatefulView {
     // И на поле цены
     this.element.querySelector('.event__input--price')
       .addEventListener('input', this.#priceChangeHandler);
+
+    this.#setDatepicker();
   }
 
   // Вспомогательный метод для сброса состояния (нужен при отмене редактирования)
@@ -267,6 +298,47 @@ export default class PointEditView extends AbstractStatefulView {
     evt.preventDefault();
     this.#handleRollupClick?.();
   };
+
+  #dateFromChangeHandler = ([userDate]) => {
+    this._setState({
+      dateFrom: userDate,
+    });
+    this.#datepickerTo.set('minDate', userDate);
+  };
+
+  #dateToChangeHandler = ([userDate]) => {
+    this._setState({
+      dateTo: userDate,
+    });
+  };
+
+  // noinspection DuplicatedCode
+  #setDatepicker() {
+    // Календарь для даты начала
+    this.#datepickerFrom = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateFrom,
+        enableTime: true,
+        onChange: this.#dateFromChangeHandler, // Обработчик выбора
+        'time_24hr': true,
+      },
+    );
+
+    // Календарь для даты окончания
+    this.#datepickerTo = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateTo,
+        enableTime: true,
+        minDate: this._state.dateFrom, // Нельзя выбрать дату ДО начала
+        onChange: this.#dateToChangeHandler,
+        'time_24hr': true,
+      },
+    );
+  }
 
   static parsePointToState(point) {
     return { ...point };

@@ -1,5 +1,7 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { POINT_TYPES } from '../const.js';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 // Вспомогательная функция для создания одного пункта списка типов
 const createEventTypeItemTemplate = (type, currentType) => `
@@ -133,17 +135,24 @@ export default class PointAddView extends AbstractStatefulView {
   #offers = null;
   #handleFormSubmit = null;
   #handleCancelClick = null;
+  #datepickerFrom = null;
+  #datepickerTo = null;
 
   constructor({ destinations, offers, onFormSubmit, onCancelClick }) {
     super();
 
-    // Начальное состояние для НОВОЙ точки
-    this._setState({
+    // 1. Создаем переменную
+    const blankPoint = {
       type: 'flight',
-      destination: destinations[0].id, // По умолчанию первый город
+      destination: destinations[0].id,
       basePrice: 0,
-      offers: []
-    });
+      offers: [],
+      dateFrom: new Date(), // Добавь дефолтные даты, чтобы flatpickr не ругался
+      dateTo: new Date()
+    }
+
+    // 2. Вызываем метод и передаем в него blankPoint
+    this._setState(PointAddView.parsePointToState(blankPoint));
 
     this.#destinations = destinations;
     this.#offers = offers;
@@ -157,6 +166,20 @@ export default class PointAddView extends AbstractStatefulView {
     return createPointAddTemplate(this._state, this.#destinations, this.#offers);
   }
 
+  removeElement() {
+    super.removeElement();
+
+    if (this.#datepickerFrom) {
+      this.#datepickerFrom.destroy();
+      this.#datepickerFrom = null;
+    }
+
+    if (this.#datepickerTo) {
+      this.#datepickerTo.destroy();
+      this.#datepickerTo = null;
+    }
+  }
+
   _restoreHandlers() {
     this.element.querySelector('form').addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#cancelClickHandler);
@@ -165,6 +188,7 @@ export default class PointAddView extends AbstractStatefulView {
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#offerChangeHandler);
     this.element.querySelector('.event__input--price').addEventListener('input', this.#priceChangeHandler);
+    this.#setDatepicker();
   }
 
   #typeChangeHandler = (evt) => {
@@ -195,14 +219,62 @@ export default class PointAddView extends AbstractStatefulView {
     this._setState({ basePrice: Number(evt.target.value) });
   };
 
-
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit?.(this._state);
+    this.#handleFormSubmit?.(PointAddView.parseStateToPoint(this._state));
   };
 
   #cancelClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleCancelClick?.();
   };
+
+  #dateFromChangeHandler = ([userDate]) => {
+    this._setState({
+      dateFrom: userDate,
+    });
+  };
+
+  #dateToChangeHandler = ([userDate]) => {
+    this._setState({
+      dateTo: userDate,
+    });
+  };
+
+  // noinspection DuplicatedCode
+  #setDatepicker() {
+    // Календарь для даты начала
+    this.#datepickerFrom = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateFrom,
+        enableTime: true,
+        onChange: this.#dateFromChangeHandler, // Обработчик выбора
+        'time_24hr': true,
+        // noinspection DuplicatedCode
+      },
+    );
+
+    // Календарь для даты окончания
+    this.#datepickerTo = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateTo,
+        enableTime: true,
+        minDate: this._state.dateFrom, // Нельзя выбрать дату ДО начала
+        onChange: this.#dateToChangeHandler,
+        'time_24hr': true,
+      },
+    );
+  }
+
+  static parsePointToState(point) {
+    return { ...point };
+  }
+
+  static parseStateToPoint(state) {
+    return { ...state };
+  }
 }
