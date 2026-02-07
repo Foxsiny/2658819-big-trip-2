@@ -1,5 +1,5 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { POINT_TYPES } from '../const.js';
+import {POINT_TYPES} from '../const.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -138,7 +138,7 @@ export default class PointAddView extends AbstractStatefulView {
   #datepickerFrom = null;
   #datepickerTo = null;
 
-  constructor({ destinations, offers, onFormSubmit, onCancelClick }) {
+  constructor({destinations, offers, onFormSubmit, onCancelClick}) {
     super();
 
     // 1. Создаем переменную
@@ -149,7 +149,7 @@ export default class PointAddView extends AbstractStatefulView {
       offers: [],
       dateFrom: new Date(), // Добавь дефолтные даты, чтобы flatpickr не ругался
       dateTo: new Date()
-    }
+    };
 
     // 2. Вызываем метод и передаем в него blankPoint
     this._setState(PointAddView.parsePointToState(blankPoint));
@@ -192,7 +192,7 @@ export default class PointAddView extends AbstractStatefulView {
   }
 
   #typeChangeHandler = (evt) => {
-    this.updateElement({ type: evt.target.value, offers: [] });
+    this.updateElement({type: evt.target.value, offers: []});
   };
 
   #destinationChangeHandler = (evt) => {
@@ -200,7 +200,7 @@ export default class PointAddView extends AbstractStatefulView {
     if (!selected) {
       return;
     }
-    this.updateElement({ destination: selected.id });
+    this.updateElement({destination: selected.id});
   };
 
   #offerChangeHandler = (evt) => {
@@ -212,11 +212,11 @@ export default class PointAddView extends AbstractStatefulView {
     } else {
       currentOffers.splice(index, 1);
     }
-    this._setState({ offers: currentOffers });
+    this._setState({offers: currentOffers});
   };
 
   #priceChangeHandler = (evt) => {
-    this._setState({ basePrice: Number(evt.target.value) });
+    this._setState({basePrice: Number(evt.target.value)});
   };
 
   #formSubmitHandler = (evt) => {
@@ -271,10 +271,10 @@ export default class PointAddView extends AbstractStatefulView {
   }
 
   static parsePointToState(point) {
-    return { ...point };
+    return {...point};
   }
 
   static parseStateToPoint(state) {
-    return { ...state };
+    return {...state};
   }
 }
