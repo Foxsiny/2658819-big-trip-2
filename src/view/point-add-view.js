@@ -233,39 +233,42 @@ export default class PointAddView extends AbstractStatefulView {
     this._setState({
       dateFrom: userDate,
     });
+    this.#datepickerTo?.set('minDate', userDate);
   };
 
   #dateToChangeHandler = ([userDate]) => {
     this._setState({
       dateTo: userDate,
     });
+    this.#datepickerFrom?.set('maxDate', userDate);
   };
 
   // noinspection DuplicatedCode
   #setDatepicker() {
-    // Календарь для даты начала
+    // Календарь для даты начала, "ОТ"
     this.#datepickerFrom = flatpickr(
       this.element.querySelector('#event-start-time-1'),
       {
         dateFormat: 'd/m/y H:i',
         defaultDate: this._state.dateFrom,
         enableTime: true,
-        onChange: this.#dateFromChangeHandler, // Обработчик выбора
         'time_24hr': true,
+        maxDate: this._state.dateTo, // Нельзя позже даты окончания
+        onChange: this.#dateFromChangeHandler, // Обработчик выбора
         // noinspection DuplicatedCode
       },
     );
 
-    // Календарь для даты окончания
+    // Календарь для даты окончания, "ДО"
     this.#datepickerTo = flatpickr(
       this.element.querySelector('#event-end-time-1'),
       {
         dateFormat: 'd/m/y H:i',
         defaultDate: this._state.dateTo,
         enableTime: true,
+        'time_24hr': true,
         minDate: this._state.dateFrom, // Нельзя выбрать дату ДО начала
         onChange: this.#dateToChangeHandler,
-        'time_24hr': true,
       },
     );
   }
