@@ -1,5 +1,7 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { POINT_TYPES } from '../const.js';
+import {POINT_TYPES} from '../const.js';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 // Вспомогательная функция для создания одного пункта списка типов
 const createEventTypeItemTemplate = (type, currentType) => `
@@ -133,17 +135,24 @@ export default class PointAddView extends AbstractStatefulView {
   #offers = null;
   #handleFormSubmit = null;
   #handleCancelClick = null;
+  #datepickerFrom = null;
+  #datepickerTo = null;
 
-  constructor({ destinations, offers, onFormSubmit, onCancelClick }) {
+  constructor({destinations, offers, onFormSubmit, onCancelClick}) {
     super();
 
-    // Начальное состояние для НОВОЙ точки
-    this._setState({
+    // 1. Создаем переменную
+    const blankPoint = {
       type: 'flight',
-      destination: destinations[0].id, // По умолчанию первый город
+      destination: destinations[0].id,
       basePrice: 0,
-      offers: []
-    });
+      offers: [],
+      dateFrom: new Date(), // Добавь дефолтные даты, чтобы flatpickr не ругался
+      dateTo: new Date()
+    };
+
+    // 2. Вызываем метод и передаем в него blankPoint
+    this._setState(PointAddView.parsePointToState(blankPoint));
 
     this.#destinations = destinations;
     this.#offers = offers;
@@ -157,6 +166,20 @@ export default class PointAddView extends AbstractStatefulView {
     return createPointAddTemplate(this._state, this.#destinations, this.#offers);
   }
 
+  removeElement() {
+    super.removeElement();
+
+    if (this.#datepickerFrom) {
+      this.#datepickerFrom.destroy();
+      this.#datepickerFrom = null;
+    }
+
+    if (this.#datepickerTo) {
+      this.#datepickerTo.destroy();
+      this.#datepickerTo = null;
+    }
+  }
+
   _restoreHandlers() {
     this.element.querySelector('form').addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#cancelClickHandler);
@@ -165,10 +188,11 @@ export default class PointAddView extends AbstractStatefulView {
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#offerChangeHandler);
     this.element.querySelector('.event__input--price').addEventListener('input', this.#priceChangeHandler);
+    this.#setDatepicker();
   }
 
   #typeChangeHandler = (evt) => {
-    this.updateElement({ type: evt.target.value, offers: [] });
+    this.updateElement({type: evt.target.value, offers: []});
   };
 
   #destinationChangeHandler = (evt) => {
@@ -176,7 +200,7 @@ export default class PointAddView extends AbstractStatefulView {
     if (!selected) {
       return;
     }
-    this.updateElement({ destination: selected.id });
+    this.updateElement({destination: selected.id});
   };
 
   #offerChangeHandler = (evt) => {
@@ -188,21 +212,72 @@ export default class PointAddView extends AbstractStatefulView {
     } else {
       currentOffers.splice(index, 1);
     }
-    this._setState({ offers: currentOffers });
+    this._setState({offers: currentOffers});
   };
 
   #priceChangeHandler = (evt) => {
-    this._setState({ basePrice: Number(evt.target.value) });
+    this._setState({basePrice: Number(evt.target.value)});
   };
-
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit?.(this._state);
+    this.#handleFormSubmit?.(PointAddView.parseStateToPoint(this._state));
   };
 
   #cancelClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleCancelClick?.();
   };
+
+  #dateFromChangeHandler = ([userDate]) => {
+    this._setState({
+      dateFrom: userDate,
+    });
+    this.#datepickerTo?.set('minDate', userDate);
+  };
+
+  #dateToChangeHandler = ([userDate]) => {
+    this._setState({
+      dateTo: userDate,
+    });
+    this.#datepickerFrom?.set('maxDate', userDate);
+  };
+
+  // noinspection DuplicatedCode
+  #setDatepicker() {
+    // Календарь для даты начала, "ОТ"
+    this.#datepickerFrom = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateFrom,
+        enableTime: true,
+        'time_24hr': true,
+        maxDate: this._state.dateTo, // Нельзя позже даты окончания
+        onChange: this.#dateFromChangeHandler, // Обработчик выбора
+        // noinspection DuplicatedCode
+      },
+    );
+
+    // Календарь для даты окончания, "ДО"
+    this.#datepickerTo = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateTo,
+        enableTime: true,
+        'time_24hr': true,
+        minDate: this._state.dateFrom, // Нельзя выбрать дату ДО начала
+        onChange: this.#dateToChangeHandler,
+      },
+    );
+  }
+
+  static parsePointToState(point) {
+    return {...point};
+  }
+
+  static parseStateToPoint(state) {
+    return {...state};
+  }
 }

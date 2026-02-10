@@ -1,8 +1,10 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { humanizePointDate, humanizePointTime } from '../utils/date.js';
+import {humanizePointDate, humanizePointTime, getPointDuration} from '../utils/date.js';
 
 const createPointTemplate = (point, destination, selectedOffers) => {
-  const { basePrice, dateFrom, dateTo, isFavorite, type } = point;
+  const {basePrice, dateFrom, dateTo, isFavorite, type} = point;
+
+  const duration = getPointDuration(dateFrom, dateTo);
 
   // Если isFavorite true, добавляем активный класс
   const favoriteClassName = isFavorite
@@ -30,7 +32,7 @@ const createPointTemplate = (point, destination, selectedOffers) => {
           &mdash;
           <time class="event__end-time" datetime="${dateTo}">${humanizePointTime(dateTo)}</time>
         </p>
-        <p class="event__duration">30M</p>
+        <p class="event__duration">${duration}</p>
       </div>
       <p class="event__price">
         &euro;&nbsp;<span class="event__price-value">${basePrice}</span>
@@ -53,14 +55,14 @@ const createPointTemplate = (point, destination, selectedOffers) => {
 `;
 };
 
-export default class PointView extends AbstractView{
+export default class PointView extends AbstractView {
   #point = null;
   #destination = null;
   #offers = null;
   #handleEditClick = null;
   #handleFavoriteClick = null; // Новое поле для колбэка
 
-  constructor({ point, destination, offers, onEditClick, onFavoriteClick }) {
+  constructor({point, destination, offers, onEditClick, onFavoriteClick}) {
     super();
     this.#point = point;
     this.#destination = destination;
@@ -82,6 +84,12 @@ export default class PointView extends AbstractView{
     this.#handleEditClick?.(); // Вызываем переданную функцию из презентера
   };
 
+  // Новый обработчик
+  #favoriteClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFavoriteClick?.();
+  };
+
   // Метод для установки слушателей событий
   #setInnerHandlers() {
     this.element.querySelector('.event__rollup-btn')
@@ -91,10 +99,4 @@ export default class PointView extends AbstractView{
     this.element.querySelector('.event__favorite-btn')
       .addEventListener('click', this.#favoriteClickHandler);
   }
-
-  // Новый обработчик
-  #favoriteClickHandler = (evt) => {
-    evt.preventDefault();
-    this.#handleFavoriteClick?.();
-  };
 }
