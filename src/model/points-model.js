@@ -1,42 +1,66 @@
 import { mockPoints, mockOffers, mockDestinations } from '../mock/points.js';
+import Observable from '../framework/observable.js';
 
-export default class PointsModel {
+export default class PointsModel extends Observable {
   #points = mockPoints;
   #destinations = mockDestinations;
   #offers = mockOffers;
 
   get points() {
-    return [...this.#points];
+    return this.#points;
   }
 
   get destinations() {
-    return [...this.#destinations];
+    return this.#destinations;
   }
 
   get offers() {
-    return [...this.#offers];
+    return this.#offers;
   }
 
-  // Метод поиска для удобства презентера
-  getDestinationById(id) {
-    return this.#destinations.find((dest) => dest.id === id);
+  // ОБНОВЛЕНИЕ
+  updatePoint(updateType, update) {
+    const index = this.#points.findIndex((point) => point.id === update.id);
+
+    if (index === -1) {
+      throw new Error('Can\'t update unexisting point');
+    }
+
+    this.#points = [
+      ...this.#points.slice(0, index),
+      update,
+      ...this.#points.slice(index + 1),
+    ];
+
+    // Уведомляем подписчиков об изменении
+    this._notify(updateType, update);
   }
 
-  getOffersByType(type) {
-    return this.#offers.find((offer) => offer.type === type)?.offers || [];
+  // ДОБАВЛЕНИЕ
+  addPoint(updateType, update) {
+    this.#points = [
+      update,
+      ...this.#points,
+    ];
+    this._notify(updateType, update);
   }
 
-  get totalPrice() {
-    return this.#points.reduce((total, point) => {
-      // Используем уже созданный нами метод поиска офферов по типу
-      const offersByType = this.getOffersByType(point.type);
+  // УДАЛЕНИЕ
+  deletePoint(updateType, update) {
+    const index = this.#points.findIndex((point) => point.id === update.id);
 
-      const selectedOffersCost = offersByType
-        .filter((o) => point.offers.includes(o.id))
-        .reduce((sum, o) => sum + o.price, 0);
+    if (index === -1) {
+      throw new Error('Can\'t delete unexisting point');
+    }
 
-      return total + point.basePrice + selectedOffersCost;
-    }, 0);
+    this.#points = [
+      ...this.#points.slice(0, index),
+      ...this.#points.slice(index + 1),
+    ];
+
+    // При удалении часто передают только тип изменения,
+    // но можно передать и update, если подписчику нужно знать, что удалили
+    this._notify(updateType, update);
   }
 
   // Пустой init, так как данные статичны (для совместимости с main.js)

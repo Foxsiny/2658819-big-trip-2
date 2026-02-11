@@ -1,37 +1,37 @@
 import { render } from '../framework/render.js';
-import FilterView from '../view/filter-view.js';
 import TripInfoView from '../view/trip-info-view.js';
 import BoardPresenter from './board-presenter.js';
 import { calculateTotalPrice } from '../utils/common.js';
 
 export default class MainPresenter {
   #tripMainContainer = null;
-  #filterContainer = null;
   #eventsContainer = null;
   #pointsModel = null;
-
+  #filterModel = null;
   #boardPresenter = null;
 
-  #filters = null;
-
-  constructor({tripMainContainer, filterContainer, eventsContainer, pointsModel, filters}) {
-    this.#tripMainContainer = tripMainContainer;
-    this.#filterContainer = filterContainer;
+  constructor({tripMainContainer, eventsContainer, pointsModel, filterModel, onNewPointDestroy}) {
     this.#eventsContainer = eventsContainer;
+    this.#tripMainContainer = tripMainContainer;
     this.#pointsModel = pointsModel;
-    this.#filters = filters; // Сохраняем фильтры
+    this.#filterModel = filterModel;
 
     // Создаем BoardPresenter, но пока не запускаем
     this.#boardPresenter = new BoardPresenter({
       boardContainer: this.#eventsContainer,
       pointsModel: this.#pointsModel,
+      filterModel: this.#filterModel,
+      onNewPointDestroy: onNewPointDestroy,
     });
   }
 
   init() {
     this.#boardPresenter.init();
     this.#renderTripInfo();
-    this.#renderFilters();
+  }
+
+  createPoint() {
+    this.#boardPresenter.createPoint();
   }
 
   #renderTripInfo() {
@@ -51,12 +51,5 @@ export default class MainPresenter {
       destinations: destinations,
       totalCost
     }), this.#tripMainContainer, 'afterbegin');
-  }
-
-  #renderFilters() {
-    // В будущем здесь появится FilterPresenter
-    render(new FilterView({
-      filters: this.#filters
-    }), this.#filterContainer);
   }
 }

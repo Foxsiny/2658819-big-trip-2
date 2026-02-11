@@ -1,6 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
 
-const createFilterItemTemplate = (filterItem, isChecked) => {
+const createFilterItemTemplate = (filterItem, currentFilterType) => {
   const {type, count} = filterItem;
 
   return `
@@ -11,7 +11,7 @@ const createFilterItemTemplate = (filterItem, isChecked) => {
         type="radio"
         name="trip-filter"
         value="${type}"
-        ${isChecked ? 'checked' : ''}
+        ${type === currentFilterType ? 'checked' : ''}
         ${count === 0 ? 'disabled' : ''}
       >
       <label class="trip-filters__filter-label" for="filter-${type}">
@@ -21,9 +21,9 @@ const createFilterItemTemplate = (filterItem, isChecked) => {
   `;
 };
 
-const createFilterTemplate = (filterItems) => {
+const createFilterTemplate = (filterItems, currentFilterType) => {
   const filterItemsTemplate = filterItems
-    .map((filter, index) => createFilterItemTemplate(filter, index === 0))
+    .map((filterItem) => createFilterItemTemplate(filterItem, currentFilterType))
     .join('');
 
   return `
@@ -37,14 +37,26 @@ const createFilterTemplate = (filterItems) => {
 // 2. Наследуемся от AbstractView
 export default class FilterView extends AbstractView {
   #filters = null;
+  #currentFilterType = null;
+  #handleFilterTypeChange = null;
 
-  constructor({filters}) {
+  constructor({filters, currentFilterType, onFilterTypeChange}) {
     super();
     this.#filters = filters;
+    this.#currentFilterType = currentFilterType;
+    this.#handleFilterTypeChange = onFilterTypeChange;
+
+    this.element.addEventListener('change', this.#filterTypeChangeHandler);
   }
 
   // 3. Заменяем метод getTemplate() на геттер template
   get template() {
-    return createFilterTemplate(this.#filters);
+    return createFilterTemplate(this.#filters, this.#currentFilterType);
   }
+
+  #filterTypeChangeHandler = (evt) => {
+    evt.preventDefault();
+    // Вызываем колбэк и передаем в него value выбранного инпута (например, 'future')
+    this.#handleFilterTypeChange?.(evt.target.value);
+  };
 }

@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { NoPointsTextType, FilterType } from '../const.js';
+import {NoPointsTextType} from '../const.js';
 
 const createNoPointTemplate = (filterType) => {
   const noPointTextValue = NoPointsTextType[filterType];
@@ -10,7 +10,7 @@ const createNoPointTemplate = (filterType) => {
 export default class NoPointView extends AbstractView {
   #filterType = null;
 
-  constructor({filterType = FilterType.EVERYTHING} = {}) {
+  constructor({filterType}) {
     super();
     this.#filterType = filterType;
   }

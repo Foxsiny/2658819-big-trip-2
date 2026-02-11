@@ -216,6 +216,7 @@ export default class PointAddView extends AbstractStatefulView {
   };
 
   #priceChangeHandler = (evt) => {
+    evt.preventDefault();
     this._setState({basePrice: Number(evt.target.value)});
   };
 
@@ -253,8 +254,9 @@ export default class PointAddView extends AbstractStatefulView {
         defaultDate: this._state.dateFrom,
         enableTime: true,
         'time_24hr': true,
-        maxDate: this._state.dateTo, // Нельзя позже даты окончания
-        onChange: this.#dateFromChangeHandler, // Обработчик выбора
+        minuteIncrement: 1,
+        maxDate: this._state.dateTo,
+        onChange: this.#dateFromChangeHandler,
         // noinspection DuplicatedCode
       },
     );
@@ -267,7 +269,8 @@ export default class PointAddView extends AbstractStatefulView {
         defaultDate: this._state.dateTo,
         enableTime: true,
         'time_24hr': true,
-        minDate: this._state.dateFrom, // Нельзя выбрать дату ДО начала
+        minuteIncrement: 1,
+        minDate: this._state.dateFrom,
         onChange: this.#dateToChangeHandler,
       },
     );

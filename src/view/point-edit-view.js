@@ -323,8 +323,9 @@ export default class PointEditView extends AbstractStatefulView {
         defaultDate: this._state.dateFrom,
         enableTime: true,
         'time_24hr': true,
-        maxDate: this._state.dateTo, // Нельзя позже даты окончания
-        onChange: this.#dateFromChangeHandler, // Обработчик выбора
+        minuteIncrement: 1,
+        maxDate: this._state.dateTo,
+        onChange: this.#dateFromChangeHandler,
       },
     );
 
@@ -336,7 +337,8 @@ export default class PointEditView extends AbstractStatefulView {
         defaultDate: this._state.dateTo,
         enableTime: true,
         'time_24hr': true,
-        minDate: this._state.dateFrom, // Нельзя выбрать дату ДО начала
+        minuteIncrement: 1,
+        minDate: this._state.dateFrom,
         onChange: this.#dateToChangeHandler,
       },
     );

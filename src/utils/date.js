@@ -9,12 +9,15 @@ const humanizePointDate = (date) => date ? dayjs(date).format(DATE_FORMAT) : '';
 const humanizePointTime = (date) => date ? dayjs(date).format(TIME_FORMAT) : '';
 
 const getPointDuration = (dateFrom, dateTo) => {
-  const diff = dayjs(dateTo).diff(dayjs(dateFrom)); // Разница в миллисекундах
+  const start = dayjs(dateFrom);
+  const end = dayjs(dateTo);
+  const diff = end.diff(start); // Разница в миллисекундах
   const pointDuration = dayjs.duration(diff);
 
   if (pointDuration.asDays() >= 1) {
     // Если больше суток: 01D 02H 30M
-    return pointDuration.format('DD[D] HH[H] mm[M]');
+    const days = Math.floor(pointDuration.asDays());
+    return `${days.toString().padStart(2, '0')}D ${pointDuration.format('HH[H] mm[M]')}`;
   } else if (pointDuration.asHours() >= 1) {
     // Если больше часа: 02H 30M
     return pointDuration.format('HH[H] mm[M]');
