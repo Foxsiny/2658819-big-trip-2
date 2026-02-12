@@ -107,12 +107,6 @@ export default class BoardPresenter {
       onModeChange: this.#handleModeChange
     });
 
-    pointPresenter.init(
-      point,
-      this.#pointsModel.destinations,
-      this.#pointsModel.offers
-    );
-
     pointPresenter.init(point, this.#pointsModel.destinations, this.#pointsModel.offers);
     // Сохраняем презентер в Map
     this.#pointPresenters.set(point.id, pointPresenter);
