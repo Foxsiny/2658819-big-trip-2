@@ -7,17 +7,21 @@ export default class NewPointPresenter {
   #handleDataChange = null;
   #handleDestroy = null;
   #pointAddComponent = null;
+  #handleModeChange = null;
 
-  constructor({ listContainer, onDataChange, onDestroy }) {
+  constructor({ listContainer, onDataChange, onDestroy, onModeChange }) {
     this.#listContainer = listContainer;
     this.#handleDataChange = onDataChange;
     this.#handleDestroy = onDestroy;
+    this.#handleModeChange = onModeChange;
   }
 
   init(destinations, offers) {
     if (this.#pointAddComponent !== null) {
       return;
     }
+
+    this.#handleModeChange?.();
 
     this.#pointAddComponent = new PointAddView({
       destinations,

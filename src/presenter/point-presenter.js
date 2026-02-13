@@ -1,7 +1,8 @@
 import {render, replace, remove} from '../framework/render.js';
 import PointView from '../view/point-view.js';
 import PointEditView from '../view/point-edit-view.js';
-import { Mode } from '../const.js';
+import {Mode} from '../const.js';
+import {UserAction, UpdateType} from '../const.js';
 
 export default class PointPresenter {
   #listContainer = null;
@@ -43,6 +44,7 @@ export default class PointPresenter {
       offers, // Вообще все офферы всех типов
       onFormSubmit: this.#handleFormSubmit,
       onRollupClick: this.#handleRollupClick,
+      onDeleteClick: this.#handleDeleteClick,
     });
 
     // Если компоненты уже были отрисованы, заменяем их
@@ -116,5 +118,13 @@ export default class PointPresenter {
   #handleFormSubmit = (point) => {
     this.#handleDataChange?.(point);
     this.#replaceFormToCard();
+  };
+
+  #handleDeleteClick = (point) => {
+    this.#handleDataChange?.(
+      UserAction.DELETE_POINT,
+      UpdateType.MINOR, // Чтобы весь список перерисовался и точка исчезла
+      point,
+    );
   };
 }

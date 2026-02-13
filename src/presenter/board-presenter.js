@@ -34,7 +34,8 @@ export default class BoardPresenter {
     this.#newPointPresenter = new NewPointPresenter({
       listContainer: this.#listComponent.element,
       onDataChange: this.#handleViewAction,
-      onDestroy: onNewPointDestroy // Передадим из main.js
+      onDestroy: onNewPointDestroy,
+      onModeChange: this.#handleModeChange
     });
   }
 
@@ -55,6 +56,7 @@ export default class BoardPresenter {
   }
 
   init() {
+    this.#clearBoard();
     this.#renderBoard();
   }
 
@@ -114,6 +116,7 @@ export default class BoardPresenter {
 
   // Метод, который закрывает все открытые формы
   #handleModeChange = () => {
+    this.#newPointPresenter.destroy();
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
   };
 
@@ -170,6 +173,8 @@ export default class BoardPresenter {
     // Сбрасываем фильтры и сортировку перед открытием формы (по ТЗ)
     this.#currentSortType = SortType.DAY;
     this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+
+    this.#handleModeChange();
 
     this.#newPointPresenter.init(this.#pointsModel.destinations, this.#pointsModel.offers);
   }

@@ -154,10 +154,11 @@ export default class PointEditView extends AbstractStatefulView {
   #offers = null;
   #handleFormSubmit = null;
   #handleRollupClick = null;
+  #handleDeleteClick = null;
   #datepickerFrom = null;
   #datepickerTo = null;
 
-  constructor({ point, destinations, offers, onFormSubmit, onRollupClick }) {
+  constructor({ point, destinations, offers, onFormSubmit, onRollupClick, onDeleteClick }) {
     super();
 
     // Вместо прямого сохранения point, создаем состояние
@@ -168,6 +169,7 @@ export default class PointEditView extends AbstractStatefulView {
 
     this.#handleFormSubmit = onFormSubmit;
     this.#handleRollupClick = onRollupClick;
+    this.#handleDeleteClick = onDeleteClick;
 
     if (this.#datepickerFrom) {
       this.#datepickerFrom.destroy();
@@ -224,6 +226,9 @@ export default class PointEditView extends AbstractStatefulView {
     // И на поле цены
     this.element.querySelector('.event__input--price')
       .addEventListener('input', this.#priceChangeHandler);
+
+    this.element.querySelector('.event__reset-btn')
+      .addEventListener('click', this.#formDeleteClickHandler);
 
     this.#setDatepicker();
   }
@@ -311,6 +316,11 @@ export default class PointEditView extends AbstractStatefulView {
       dateTo: userDate,
     });
     this.#datepickerFrom?.set('maxDate', userDate);
+  };
+
+  #formDeleteClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleDeleteClick?.(PointEditView.parseStateToPoint(this._state));
   };
 
   // noinspection DuplicatedCode
