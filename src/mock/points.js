@@ -77,8 +77,8 @@ const mockPoints = [
   {
     id: 'p-1',
     basePrice: 1100,
-    dateFrom: '2026-01-24T12:00:00.000Z',
-    dateTo: '2026-01-24T13:30:00.000Z',
+    dateFrom: '2027-01-24T12:00:00.000Z',
+    dateTo: '2027-01-24T13:30:00.000Z',
     destination: 'dest-1',
     isFavorite: false,
     offers: ['off-taxi-1', 'off-taxi-2'],

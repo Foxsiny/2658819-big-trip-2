@@ -11,6 +11,10 @@ const createPointTemplate = (point, destination, selectedOffers) => {
     ? 'event__favorite-btn--active'
     : '';
 
+  const selectedOffersPrice = selectedOffers.reduce((sum, offer) => sum + offer.price, 0);
+
+  const totalPrice = basePrice + selectedOffersPrice;
+
   const offersTemplate = selectedOffers.map((offer) => `
     <li class="event__offer">
       <span class="event__offer-title">${offer.title}</span>
@@ -35,7 +39,7 @@ const createPointTemplate = (point, destination, selectedOffers) => {
         <p class="event__duration">${duration}</p>
       </div>
       <p class="event__price">
-        &euro;&nbsp;<span class="event__price-value">${basePrice}</span>
+        &euro;&nbsp;<span class="event__price-value">${totalPrice}</span>
       </p>
       <h4 class="visually-hidden">Offers:</h4>
       <ul class="event__selected-offers">

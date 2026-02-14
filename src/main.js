@@ -1,29 +1,43 @@
 
 import PointsModel from './model/points-model.js';
-import { generateFilter } from './mock/filter.js'; // Импортируем генератор данных для фильтров
+import FilterModel from './model/filter-model.js';
 import MainPresenter from './presenter/main-presenter.js';
+import FilterPresenter from './presenter/filter-presenter.js';
 
-// 1. Сначала находим все элементы в DOM
 const tripMainElement = document.querySelector('.trip-main');
 const filterElement = tripMainElement.querySelector('.trip-controls__filters');
 const tripEventsElement = document.querySelector('.trip-events');
+const newPointButtonElement = document.querySelector('.trip-main__event-add-btn');
 
-// 2. Создаем экземпляр модели
 const pointsModel = new PointsModel();
+const filterModel = new FilterModel();
 
-const filters = generateFilter(pointsModel.points);
-
-// 3. Создаем главный презентер и передаем ему эти элементы
-const mainPresenter = new MainPresenter({
-  tripMainContainer: tripMainElement,
+const filterPresenter = new FilterPresenter({
   filterContainer: filterElement,
-  eventsContainer: tripEventsElement,
-  pointsModel: pointsModel,
-  filters: filters,
+  filterModel,
+  pointsModel,
 });
 
+const handleNewPointFormClose = () => {
+  newPointButtonElement.disabled = false;
+};
+
+const mainPresenter = new MainPresenter({
+  tripMainContainer: tripMainElement,
+  eventsContainer: tripEventsElement,
+  pointsModel: pointsModel,
+  filterModel: filterModel,
+  onNewPointDestroy: handleNewPointFormClose,
+});
+
+newPointButtonElement.addEventListener('click', () => {
+  mainPresenter.createPoint(); // Создаем метод-посредник
+  newPointButtonElement.disabled = true; // Блокируем кнопку
+});
+
+filterPresenter.init();
 mainPresenter.init();
 
 // ЗАПУСК ПРИЛОЖЕНИЯ
 // Вызываем асинхронный init у модели.
-pointsModel.init();
+pointsModel.init().catch(() => {});

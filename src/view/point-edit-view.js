@@ -154,10 +154,11 @@ export default class PointEditView extends AbstractStatefulView {
   #offers = null;
   #handleFormSubmit = null;
   #handleRollupClick = null;
+  #handleDeleteClick = null;
   #datepickerFrom = null;
   #datepickerTo = null;
 
-  constructor({ point, destinations, offers, onFormSubmit, onRollupClick }) {
+  constructor({ point, destinations, offers, onFormSubmit, onRollupClick, onDeleteClick }) {
     super();
 
     // Вместо прямого сохранения point, создаем состояние
@@ -168,6 +169,7 @@ export default class PointEditView extends AbstractStatefulView {
 
     this.#handleFormSubmit = onFormSubmit;
     this.#handleRollupClick = onRollupClick;
+    this.#handleDeleteClick = onDeleteClick;
 
     if (this.#datepickerFrom) {
       this.#datepickerFrom.destroy();
@@ -224,6 +226,9 @@ export default class PointEditView extends AbstractStatefulView {
     // И на поле цены
     this.element.querySelector('.event__input--price')
       .addEventListener('input', this.#priceChangeHandler);
+
+    this.element.querySelector('.event__reset-btn')
+      .addEventListener('click', this.#formDeleteClickHandler);
 
     this.#setDatepicker();
   }
@@ -313,6 +318,11 @@ export default class PointEditView extends AbstractStatefulView {
     this.#datepickerFrom?.set('maxDate', userDate);
   };
 
+  #formDeleteClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleDeleteClick?.(PointEditView.parseStateToPoint(this._state));
+  };
+
   // noinspection DuplicatedCode
   #setDatepicker() {
     // Календарь для даты начала, "ОТ"
@@ -323,8 +333,9 @@ export default class PointEditView extends AbstractStatefulView {
         defaultDate: this._state.dateFrom,
         enableTime: true,
         'time_24hr': true,
-        maxDate: this._state.dateTo, // Нельзя позже даты окончания
-        onChange: this.#dateFromChangeHandler, // Обработчик выбора
+        minuteIncrement: 1,
+        maxDate: this._state.dateTo,
+        onChange: this.#dateFromChangeHandler,
       },
     );
 
@@ -336,7 +347,8 @@ export default class PointEditView extends AbstractStatefulView {
         defaultDate: this._state.dateTo,
         enableTime: true,
         'time_24hr': true,
-        minDate: this._state.dateFrom, // Нельзя выбрать дату ДО начала
+        minuteIncrement: 1,
+        minDate: this._state.dateFrom,
         onChange: this.#dateToChangeHandler,
       },
     );

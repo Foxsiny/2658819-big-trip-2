@@ -39,4 +39,18 @@ const SORT_TYPES = [
   {type: SortType.OFFERS, isDisabled: true},
 ];
 
-export { POINT_TYPES, DESTINATION_NAMES, NoPointsTextType, FilterType, Mode, SortType, SORT_TYPES };
+// Что именно сделал пользователь (действие)
+const UserAction = {
+  UPDATE_POINT: 'UPDATE_POINT',
+  ADD_POINT: 'ADD_POINT',
+  DELETE_POINT: 'DELETE_POINT',
+};
+
+// На что это влияет (что надо перерисовать)
+const UpdateType = {
+  PATCH: 'PATCH', // Обновить только одну карточку (например, Favorite)
+  MINOR: 'MINOR', // Обновить список (например, при сортировке)
+  MAJOR: 'MAJOR', // Обновить всё (например, при фильтрации)
+};
+
+export {POINT_TYPES, DESTINATION_NAMES, NoPointsTextType, FilterType, Mode, SortType, SORT_TYPES, UserAction, UpdateType};
