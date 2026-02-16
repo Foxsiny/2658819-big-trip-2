@@ -1,10 +1,16 @@
-import { mockPoints, mockOffers, mockDestinations } from '../mock/points.js';
+import {mockPoints, mockOffers, mockDestinations} from '../mock/points.js';
+import {UpdateType} from '../const.js';
 import Observable from '../framework/observable.js';
 
 export default class PointsModel extends Observable {
   #points = mockPoints;
   #destinations = mockDestinations;
   #offers = mockOffers;
+  #isLoading = true;
+
+  get isLoading() {
+    return this.#isLoading;
+  }
 
   get points() {
     return this.#points;
@@ -64,7 +70,13 @@ export default class PointsModel extends Observable {
   }
 
   // Пустой init, так как данные статичны (для совместимости с main.js)
-  init() {
-    return Promise.resolve();
+  async init() {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      this.#isLoading = false;
+    } catch (err) {
+      this.#isLoading = false;
+    }
+    this._notify(UpdateType.INIT, undefined);
   }
 }

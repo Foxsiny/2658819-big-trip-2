@@ -1,8 +1,7 @@
 import {render, replace, remove} from '../framework/render.js';
 import PointView from '../view/point-view.js';
 import PointEditView from '../view/point-edit-view.js';
-import {Mode} from '../const.js';
-import {UserAction, UpdateType} from '../const.js';
+import {Mode, UserAction, UpdateType} from '../const.js';
 
 export default class PointPresenter {
   #listContainer = null;
@@ -116,15 +115,51 @@ export default class PointPresenter {
   };
 
   #handleFormSubmit = (point) => {
-    this.#handleDataChange?.(point);
-    this.#replaceFormToCard();
+    // 1. Командуем вьюхе показать состояние сохранения
+    this.#pointEditComponent.setSaving();
+
+    setTimeout(() => {
+      this.#handleDataChange?.(UserAction.UPDATE_POINT, UpdateType.MINOR, point);
+    }, 2000);
+
+    // 2. Отправляем данные наверх
+    // this.#handleDataChange?.(
+    //   UserAction.UPDATE_POINT,
+    //   UpdateType.MINOR,
+    //   point
+    // );
+    // this.#replaceFormToCard();
   };
 
   #handleDeleteClick = (point) => {
-    this.#handleDataChange?.(
-      UserAction.DELETE_POINT,
-      UpdateType.MINOR, // Чтобы весь список перерисовался и точка исчезла
-      point,
-    );
+    // 1. Командуем вьюхе показать состояние удаления
+    this.#pointEditComponent.setDeleting();
+
+    // 2. Отправляем сигнал на удаление
+    // this.#handleDataChange?.(
+    //   UserAction.DELETE_POINT,
+    //   UpdateType.MINOR, // Чтобы весь список перерисовался и точка исчезла
+    //   point,
+    // );
+    setTimeout(() => {
+      this.#handleDataChange?.(
+        UserAction.DELETE_POINT,
+        UpdateType.MINOR,
+        point,
+      );
+      // Нам не нужно вызывать destroy(), так как BoardPresenter
+      // сам перерисует список (UpdateType.MINOR) и удалит этот презентер.
+    }, 2000);
   };
+
+  setAborting() {
+    if (this.#mode === Mode.DEFAULT) {
+      // Трясем просто карточку (например, если не сохранилась "звездочка")
+      this.#pointComponent.shake();
+      return;
+    }
+
+    // Трясем форму и возвращаем ей управление
+    this.#pointEditComponent.setAborting();
+  }
 }

@@ -1,8 +1,9 @@
 import {render, replace, remove, RenderPosition} from '../framework/render.js';
 import TripInfoView from '../view/trip-info-view.js';
 import BoardPresenter from './board-presenter.js';
-import { calculateTotalPrice } from '../utils/common.js';
-import { sortPointDay } from '../utils/date.js';
+import {calculateTotalPrice} from '../utils/common.js';
+import {sortPointDay} from '../utils/date.js';
+import {UpdateType} from '../const.js';
 
 export default class MainPresenter {
   #tripMainContainer = null;
@@ -30,6 +31,10 @@ export default class MainPresenter {
   }
 
   init() {
+    if (this.#pointsModel.isLoading) { // Если в модели еще идет загрузка
+      return; // Просто ничего не рисуем в шапке
+    }
+
     this.#renderTripInfo();
     this.#boardPresenter.init();
   }
@@ -38,8 +43,10 @@ export default class MainPresenter {
     this.#boardPresenter.createPoint();
   }
 
-  #handleModelEvent = () => {
-    this.init(); // Просто вызываем init заново для обновления TripInfo
+  #handleModelEvent = (updateType) => {
+    if (updateType === UpdateType.INIT || updateType === UpdateType.MAJOR || updateType === UpdateType.MINOR) {
+      this.init();
+    }
   };
 
   #renderTripInfo() {

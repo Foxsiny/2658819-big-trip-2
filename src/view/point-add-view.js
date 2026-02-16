@@ -1,10 +1,11 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import {POINT_TYPES} from '../const.js';
+import {humanizePointDate} from '../utils/date';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
 // Вспомогательная функция для создания одного пункта списка типов
-const createEventTypeItemTemplate = (type, currentType) => `
+const createEventTypeItemTemplate = (type, currentType, isDisabled) => `
   <div class="event__type-item">
     <input
       id="event-type-${type}-1"
@@ -13,6 +14,7 @@ const createEventTypeItemTemplate = (type, currentType) => `
       name="event-type"
       value="${type}"
       ${type === currentType ? 'checked' : ''}
+      ${isDisabled ? 'disabled' : ''}
     >
     <label class="event__type-label  event__type-label--${type}" for="event-type-${type}-1">
       ${type.charAt(0).toUpperCase() + type.slice(1)}
@@ -21,7 +23,7 @@ const createEventTypeItemTemplate = (type, currentType) => `
 `;
 
 // Вспомогательная функция для генерации одной опции
-const createOfferSelectorTemplate = (offer, isChecked) => {
+const createOfferSelectorTemplate = (offer, isChecked, isDisabled) => {
   const {id, title, price} = offer;
 
   return `
@@ -31,8 +33,9 @@ const createOfferSelectorTemplate = (offer, isChecked) => {
         id="event-offer-${id}-1"
         type="checkbox"
         name="event-offer-${id}"
-        data-offer-id="${id}"  // <--- Добавь это для связи со стейтом
+        data-offer-id="${id}"
         ${isChecked ? 'checked' : ''}
+        ${isDisabled ? 'disabled' : ''}
       >
       <label class="event__offer-label" for="event-offer-${id}-1">
         <span class="event__offer-title">${title}</span>
@@ -44,7 +47,7 @@ const createOfferSelectorTemplate = (offer, isChecked) => {
 };
 
 // Функция для создания ВСЕЙ секции офферов
-const createOffersSectionTemplate = (offers, selectedOfferIds) => {
+const createOffersSectionTemplate = (offers, selectedOfferIds, isDisabled) => {
   if (!offers || offers.length === 0) {
     return '';
   }
@@ -53,13 +56,21 @@ const createOffersSectionTemplate = (offers, selectedOfferIds) => {
     <section class="event__section  event__section--offers">
       <h3 class="event__section-title  event__section-title--offers">Offers</h3>
       <div class="event__available-offers">
-        ${offers.map((offer) => createOfferSelectorTemplate(offer, selectedOfferIds.includes(offer.id))).join('')}
+        ${offers.map((offer) => createOfferSelectorTemplate(offer, selectedOfferIds.includes(offer.id)), isDisabled).join('')}
       </div>
     </section>`;
 };
 
 const createPointAddTemplate = (state, destinations, offers) => {
-  const {type, basePrice, destination: destinationId, offers: selectedOfferIds} = state;
+  const {type,
+    basePrice,
+    destination: destinationId,
+    offers: selectedOfferIds,
+    dateFrom,
+    dateTo,
+    isDisabled,
+    isSaving
+  } = state;
   const pointDestination = destinations.find((dest) => dest.id === destinationId);
   const offersByType = offers.find((offer) => offer.type === type)?.offers || [];
 
@@ -72,13 +83,13 @@ const createPointAddTemplate = (state, destinations, offers) => {
           <span class="visually-hidden">Choose event type</span>
           <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon"/>
         </label>
-        <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox"/>
+        <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox" ${isDisabled ? 'disabled' : ''}/>
 
         <div class="event__type-list">
           <fieldset class="event__type-group">
             <legend class="visually-hidden">Event type</legend>
 
-            ${POINT_TYPES.map((pointType) => createEventTypeItemTemplate(pointType, type)).join('')}
+            ${POINT_TYPES.map((pointType) => createEventTypeItemTemplate(pointType, type, isDisabled)).join('')}
 
           </fieldset>
         </div>
@@ -89,7 +100,7 @@ const createPointAddTemplate = (state, destinations, offers) => {
           ${type}
         </label>
         <input class="event__input  event__input--destination" id="event-destination-1" type="text"
-               name="event-destination" value="${pointDestination ? pointDestination.name : ''}" list="destination-list-1"/>
+               name="event-destination" value="${pointDestination ? pointDestination.name : ''}" list="destination-list-1" ${isDisabled ? 'disabled' : ''}/>
         <datalist id="destination-list-1">
           ${destinations.map((dest) => `<option value="${dest.name}"></option>`).join('')}
         </datalist>
@@ -98,11 +109,11 @@ const createPointAddTemplate = (state, destinations, offers) => {
       <div class="event__field-group  event__field-group--time">
         <label class="visually-hidden" for="event-start-time-1">From</label>
         <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time"
-               value="19/03/19 00:00"/>
+               value="${humanizePointDate(dateFrom, 'DD/MM/YY HH:mm')}" ${isDisabled ? 'disabled' : ''}/>
         &mdash;
         <label class="visually-hidden" for="event-end-time-1">To</label>
         <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time"
-               value="19/03/19 00:00"/>
+               value="${humanizePointDate(dateTo, 'DD/MM/YY HH:mm')}" ${isDisabled ? 'disabled' : ''}/>
       </div>
 
       <div class="event__field-group  event__field-group--price">
@@ -111,15 +122,15 @@ const createPointAddTemplate = (state, destinations, offers) => {
           &euro;
         </label>
         <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price"
-               value="${basePrice}"/>
+               value="${basePrice}" ${isDisabled ? 'disabled' : ''}/>
       </div>
 
-      <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-      <button class="event__reset-btn" type="reset">Cancel</button>
+      <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
+      <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>Cancel</button>
 
     </header>
     <section class="event__details">
-      ${createOffersSectionTemplate(offersByType, selectedOfferIds)}
+      ${createOffersSectionTemplate(offersByType, selectedOfferIds, isDisabled)}
       ${pointDestination ? `
         <section class="event__section  event__section--destination">
           <h3 class="event__section-title  event__section-title--destination">Destination</h3>
@@ -246,6 +257,9 @@ export default class PointAddView extends AbstractStatefulView {
 
   // noinspection DuplicatedCode
   #setDatepicker() {
+    if (this._state.isDisabled) {
+      return;
+    }
     // Календарь для даты начала, "ОТ"
     this.#datepickerFrom = flatpickr(
       this.element.querySelector('#event-start-time-1'),
@@ -276,11 +290,50 @@ export default class PointAddView extends AbstractStatefulView {
     );
   }
 
+  // 1. Метод для состояния сохранения
+  setSaving() {
+    this.updateElement({
+      isDisabled: true,
+      isSaving: true,
+    });
+  }
+
+  // 2. Метод для состояния удаления
+  setDeleting() {
+    this.updateElement({
+      isDisabled: true,
+      isDeleting: true,
+    });
+  }
+
+  // 3. Метод для отмены блокировки (если произошла ошибка)
+  setAborting() {
+    const resetFormState = () => {
+      this.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.shake(resetFormState); // Вызываем покачивание из AbstractView
+  }
+
   static parsePointToState(point) {
-    return {...point};
+    return {
+      ...point,
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false,};
   }
 
   static parseStateToPoint(state) {
-    return {...state};
+    const point = {...state };
+
+    delete point.isDisabled;
+    delete point.isSaving;
+    delete point.isDeleting;
+
+    return point;
   }
 }

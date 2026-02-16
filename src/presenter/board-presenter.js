@@ -14,6 +14,7 @@ export default class BoardPresenter {
   #pointsModel = null;
   #filterModel = null;
   #newPointPresenter = null;
+  #isLoading = true;
 
   // Хранилище для всех презентеров точек (ID точки -> Презентер точки)
   #pointPresenters = new Map();
@@ -58,10 +59,25 @@ export default class BoardPresenter {
   init() {
     this.#clearBoard();
     this.#renderBoard();
+    // Имитируем задержку сети при первом запуске
+    setTimeout(() => {
+      this.#isLoading = false; // Выключаем режим загрузки
+      this.#clearBoard(); // Стираем надпись Loading
+      this.#renderBoard(); // Рисуем настоящую доску с кнопками и точками
+    }, 2000);
+    // this.#isLoading = false;
+    // this.#clearBoard();
+    // this.#renderBoard();
   }
 
   // Вспомогательный приватный метод для отрисовки всей "доски"
   #renderBoard() {
+    // 1. Если мы еще грузимся — рисуем ТОЛЬКО надпись Loading
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return; // Выходим, чтобы не рисовать сортировку и пустые списки
+    }
+
     const points = this.points;
     const pointCount = points.length;
 
@@ -73,6 +89,13 @@ export default class BoardPresenter {
     this.#renderSort();
     render(this.#listComponent, this.#boardContainer);
     points.forEach((point) => this.#renderPoint(point));
+  }
+
+  #renderLoading() {
+    this.#noPointComponent = new NoPointView({
+      filterType: FilterType.LOADING,
+    });
+    render(this.#noPointComponent, this.#boardContainer);
   }
 
   #renderNoPoints() {
@@ -148,6 +171,11 @@ export default class BoardPresenter {
       case UpdateType.MAJOR:
         // Обновляем всю доску (например, при фильтрации)
         this.#clearBoard({resetSortType: true});
+        this.#renderBoard();
+        break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        this.#clearBoard();
         this.#renderBoard();
         break;
     }
