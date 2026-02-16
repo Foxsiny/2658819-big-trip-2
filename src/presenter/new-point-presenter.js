@@ -48,23 +48,21 @@ export default class NewPointPresenter {
     document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
-  #handleFormSubmit = (point) => {
+  #handleFormSubmit = async (point) => {
     this.#pointAddComponent.setSaving();
-    // this.#handleDataChange?.(
-    //   UserAction.ADD_POINT,
-    //   UpdateType.MINOR,
-    //   // В новой точке еще нет ID, модель добавит его сама или сервер
-    //   { id: crypto.randomUUID(), ...point},
-    // );
-    // this.destroy();
-    setTimeout(() => {
-      this.#handleDataChange?.(
+
+    try {
+      await this.#handleDataChange?.(
         UserAction.ADD_POINT,
         UpdateType.MINOR,
-        { id: crypto.randomUUID(), ...point},
+        point,
       );
+      // Уничтожаем форму добавления ТОЛЬКО если сервер подтвердил успех
       this.destroy();
-    }, 2000);
+    } catch (err) {
+      // Если ошибка — трясем форму и возвращаем управление пользователю
+      this.#pointAddComponent.setAborting();
+    }
   };
 
   #handleCancelClick = () => {

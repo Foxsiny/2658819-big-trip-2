@@ -159,7 +159,8 @@ export default class PointAddView extends AbstractStatefulView {
       basePrice: 0,
       offers: [],
       dateFrom: new Date(), // Добавь дефолтные даты, чтобы flatpickr не ругался
-      dateTo: new Date()
+      dateTo: new Date(),
+      isFavorite: false
     };
 
     // 2. Вызываем метод и передаем в него blankPoint

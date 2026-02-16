@@ -114,21 +114,26 @@ export default class PointPresenter {
     this.#replaceFormToCard();
   };
 
-  #handleFormSubmit = (point) => {
+  #handleFormSubmit = async (point) => {
     // 1. Командуем вьюхе показать состояние сохранения
     this.#pointEditComponent.setSaving();
 
-    setTimeout(() => {
-      this.#handleDataChange?.(UserAction.UPDATE_POINT, UpdateType.MINOR, point);
-    }, 2000);
+    try {
+      // 2. Ждем ответа от модели (которая теперь идет на сервер)
+      // ВАЖНО: используем await, чтобы код замер до получения ответа
+      await this.#handleDataChange?.(
+        UserAction.UPDATE_POINT,
+        UpdateType.MINOR,
+        point,
+      );
 
-    // 2. Отправляем данные наверх
-    // this.#handleDataChange?.(
-    //   UserAction.UPDATE_POINT,
-    //   UpdateType.MINOR,
-    //   point
-    // );
-    // this.#replaceFormToCard();
+      // 3. Если всё прошло успешно, возвращаемся к карточке
+      this.#replaceFormToCard();
+
+    } catch (err) {
+      // 4. Если сервер выдал ошибку — вызываем эффект тряски и разблокировку
+      this.#pointEditComponent.setAborting();
+    }
   };
 
   #handleDeleteClick = (point) => {

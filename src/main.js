@@ -3,13 +3,20 @@ import PointsModel from './model/points-model.js';
 import FilterModel from './model/filter-model.js';
 import MainPresenter from './presenter/main-presenter.js';
 import FilterPresenter from './presenter/filter-presenter.js';
+import {AUTHORIZATION, END_POINT} from './const.js';
+import PointsApiService from './points-api-service.js';
 
 const tripMainElement = document.querySelector('.trip-main');
 const filterElement = tripMainElement.querySelector('.trip-controls__filters');
 const tripEventsElement = document.querySelector('.trip-events');
 const newPointButtonElement = document.querySelector('.trip-main__event-add-btn');
 
-const pointsModel = new PointsModel();
+const pointsApiService = new PointsApiService(END_POINT, AUTHORIZATION);
+
+const pointsModel = new PointsModel({
+  pointsApiService: pointsApiService // Передаем сервис внутрь
+});
+
 const filterModel = new FilterModel();
 
 const filterPresenter = new FilterPresenter({
