@@ -1,13 +1,12 @@
 const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
-const DESTINATION_NAMES = ['Chamonix', 'Geneva', 'Amsterdam', 'Paris', 'Tokyo'];
-
 // Enum для типов фильтрации
 const FilterType = {
   EVERYTHING: 'everything',
   FUTURE: 'future',
   PRESENT: 'present',
   PAST: 'past',
+  LOADING: 'loading',
 };
 
 // Enum для текстов заглушек
@@ -16,6 +15,7 @@ const NoPointsTextType = {
   [FilterType.FUTURE]: 'There are no future events now',
   [FilterType.PRESENT]: 'There are no present events now',
   [FilterType.PAST]: 'There are no past events now',
+  [FilterType.LOADING]: 'Loading...',
 };
 
 const Mode = {
@@ -51,6 +51,17 @@ const UpdateType = {
   PATCH: 'PATCH', // Обновить только одну карточку (например, Favorite)
   MINOR: 'MINOR', // Обновить список (например, при сортировке)
   MAJOR: 'MAJOR', // Обновить всё (например, при фильтрации)
+  INIT: 'INIT', // Данные успешно загружены с сервера, приложение может выходить из режима ожидания
 };
 
-export {POINT_TYPES, DESTINATION_NAMES, NoPointsTextType, FilterType, Mode, SortType, SORT_TYPES, UserAction, UpdateType};
+const Method = {
+  GET: 'GET',
+  PUT: 'PUT',
+  POST: 'POST',
+  DELETE: 'DELETE',
+};
+
+const AUTHORIZATION = 'Basic hS2sfS44wcl1sa2j'; // Мой токен
+const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
+
+export {POINT_TYPES, NoPointsTextType, FilterType, Mode, SortType, SORT_TYPES, UserAction, UpdateType, Method, AUTHORIZATION, END_POINT};

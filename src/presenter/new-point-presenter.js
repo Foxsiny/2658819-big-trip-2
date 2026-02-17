@@ -1,6 +1,6 @@
-import { render, remove, RenderPosition } from '../framework/render.js';
+import {render, remove, RenderPosition} from '../framework/render.js';
 import PointAddView from '../view/point-add-view.js';
-import { UserAction, UpdateType } from '../const.js';
+import {UserAction, UpdateType} from '../const.js';
 
 export default class NewPointPresenter {
   #listContainer = null;
@@ -48,14 +48,21 @@ export default class NewPointPresenter {
     document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
-  #handleFormSubmit = (point) => {
-    this.#handleDataChange?.(
-      UserAction.ADD_POINT,
-      UpdateType.MINOR,
-      // В новой точке еще нет ID, модель добавит его сама или сервер
-      { id: crypto.randomUUID(), ...point},
-    );
-    this.destroy();
+  #handleFormSubmit = async (point) => {
+    this.#pointAddComponent.setSaving();
+
+    try {
+      await this.#handleDataChange?.(
+        UserAction.ADD_POINT,
+        UpdateType.MINOR,
+        point,
+      );
+      // Уничтожаем форму добавления ТОЛЬКО если сервер подтвердил успех
+      this.destroy();
+    } catch (err) {
+      // Если ошибка — трясем форму и возвращаем управление пользователю
+      this.#pointAddComponent.setAborting();
+    }
   };
 
   #handleCancelClick = () => {
@@ -68,4 +75,8 @@ export default class NewPointPresenter {
       this.destroy();
     }
   };
+
+  setAborting() {
+    this.#pointAddComponent.setAborting();
+  }
 }

@@ -1,8 +1,7 @@
 import {render, replace, remove} from '../framework/render.js';
 import PointView from '../view/point-view.js';
 import PointEditView from '../view/point-edit-view.js';
-import {Mode} from '../const.js';
-import {UserAction, UpdateType} from '../const.js';
+import {Mode, UserAction, UpdateType} from '../const.js';
 
 export default class PointPresenter {
   #listContainer = null;
@@ -115,16 +114,57 @@ export default class PointPresenter {
     this.#replaceFormToCard();
   };
 
-  #handleFormSubmit = (point) => {
-    this.#handleDataChange?.(point);
-    this.#replaceFormToCard();
+  #handleFormSubmit = async (point) => {
+    // 1. Командуем вьюхе показать состояние сохранения
+    this.#pointEditComponent.setSaving();
+
+    try {
+      // 2. Ждем ответа от модели (которая теперь идет на сервер)
+      // ВАЖНО: используем await, чтобы код замер до получения ответа
+      await this.#handleDataChange?.(
+        UserAction.UPDATE_POINT,
+        UpdateType.MINOR,
+        point,
+      );
+
+      // 3. Если всё прошло успешно, возвращаемся к карточке
+      this.#replaceFormToCard();
+
+    } catch (err) {
+      // 4. Если сервер выдал ошибку — вызываем эффект тряски и разблокировку
+      this.#pointEditComponent.setAborting();
+    }
   };
 
   #handleDeleteClick = (point) => {
-    this.#handleDataChange?.(
-      UserAction.DELETE_POINT,
-      UpdateType.MINOR, // Чтобы весь список перерисовался и точка исчезла
-      point,
-    );
+    // 1. Командуем вьюхе показать состояние удаления
+    this.#pointEditComponent.setDeleting();
+
+    // 2. Отправляем сигнал на удаление
+    // this.#handleDataChange?.(
+    //   UserAction.DELETE_POINT,
+    //   UpdateType.MINOR, // Чтобы весь список перерисовался и точка исчезла
+    //   point,
+    // );
+    setTimeout(() => {
+      this.#handleDataChange?.(
+        UserAction.DELETE_POINT,
+        UpdateType.MINOR,
+        point,
+      );
+      // Нам не нужно вызывать destroy(), так как BoardPresenter
+      // сам перерисует список (UpdateType.MINOR) и удалит этот презентер.
+    }, 2000);
   };
+
+  setAborting() {
+    if (this.#mode === Mode.DEFAULT) {
+      // Трясем просто карточку (например, если не сохранилась "звездочка")
+      this.#pointComponent.shake();
+      return;
+    }
+
+    // Трясем форму и возвращаем ей управление
+    this.#pointEditComponent.setAborting();
+  }
 }
