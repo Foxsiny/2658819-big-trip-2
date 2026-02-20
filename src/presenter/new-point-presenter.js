@@ -40,7 +40,7 @@ export default class NewPointPresenter {
       return;
     }
 
-    this.#handleDestroy?.(); // Разблокирует кнопку "New Event" в main.js
+    this.#handleDestroy?.();
 
     remove(this.#pointAddComponent);
     this.#pointAddComponent = null;
@@ -57,10 +57,8 @@ export default class NewPointPresenter {
         UpdateType.MINOR,
         point,
       );
-      // Уничтожаем форму добавления ТОЛЬКО если сервер подтвердил успех
       this.destroy();
     } catch (err) {
-      // Если ошибка — трясем форму и возвращаем управление пользователю
       this.#pointAddComponent.setAborting();
     }
   };

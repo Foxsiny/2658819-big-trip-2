@@ -2,19 +2,16 @@ import ApiService from './framework/api-service.js';
 import {Method} from './const.js';
 
 export default class PointsApiService extends ApiService {
-  // 1. Получаем список точек
   get points() {
     return this._load({url: 'points'})
       .then(ApiService.parseResponse);
   }
 
-  // 2. Получаем справочник направлений (городов)
   get destinations() {
     return this._load({url: 'destinations'})
       .then(ApiService.parseResponse);
   }
 
-  // 3. Получаем справочник всех доступных офферов
   get offers() {
     return this._load({url: 'offers'})
       .then(ApiService.parseResponse);
@@ -35,10 +32,9 @@ export default class PointsApiService extends ApiService {
     return await this._load({
       url: `points/${point.id}`,
       method: Method.DELETE,
-    }); // При DELETE сервер обычно возвращает пустой ответ, parseResponse не нужен
+    });
   }
 
-  // 4. Метод для обновления точки на сервере
   async updatePoint(point) {
     const response = await this._load({
       url: `points/${point.id}`,

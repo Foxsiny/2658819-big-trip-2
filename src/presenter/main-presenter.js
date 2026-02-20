@@ -3,7 +3,7 @@ import TripInfoView from '../view/trip-info-view.js';
 import BoardPresenter from './board-presenter.js';
 import {calculateTotalPrice} from '../utils/common.js';
 import {sortPointDay} from '../utils/date.js';
-import {UpdateType} from '../const.js';
+import {UpdateType, FilterType} from '../const.js';
 
 export default class MainPresenter {
   #tripMainContainer = null;
@@ -19,7 +19,6 @@ export default class MainPresenter {
     this.#pointsModel = pointsModel;
     this.#filterModel = filterModel;
 
-    // Создаем BoardPresenter, но пока не запускаем
     this.#boardPresenter = new BoardPresenter({
       boardContainer: this.#eventsContainer,
       pointsModel: this.#pointsModel,
@@ -31,20 +30,22 @@ export default class MainPresenter {
   }
 
   init() {
-    if (this.#pointsModel.isLoading) { // Если в модели еще идет загрузка
-      return; // Просто ничего не рисуем в шапке
+    this.#boardPresenter.init();
+
+    if (this.#pointsModel.isLoading) {
+      return;
     }
 
     this.#renderTripInfo();
-    this.#boardPresenter.init();
   }
 
   createPoint() {
+    this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
     this.#boardPresenter.createPoint();
   }
 
   #handleModelEvent = (updateType) => {
-    if (updateType === UpdateType.INIT || updateType === UpdateType.MAJOR || updateType === UpdateType.MINOR) {
+    if (updateType === UpdateType.MAJOR) {
       this.init();
     }
   };
@@ -55,7 +56,7 @@ export default class MainPresenter {
     const offers = this.#pointsModel.offers;
     const prevTripInfoComponent = this.#tripInfoComponent;
 
-    if (points.length === 0) {
+    if (points.length === 0 || destinations.length === 0 || offers.length === 0) {
       if (prevTripInfoComponent) {
         remove(prevTripInfoComponent);
         this.#tripInfoComponent = null;
@@ -63,7 +64,6 @@ export default class MainPresenter {
       return;
     }
 
-    // Используем чистую функцию из утилит
     const totalCost = calculateTotalPrice(points, offers);
 
     const sortedPoints = [...points].sort(sortPointDay);
@@ -74,14 +74,11 @@ export default class MainPresenter {
       totalCost
     });
 
-    // ЛОГИКА ЗАМЕНЫ:
-    // Если это первая отрисовка (старого компонента нет)
     if (prevTripInfoComponent === null) {
       render(this.#tripInfoComponent, this.#tripMainContainer, RenderPosition.AFTERBEGIN);
       return;
     }
 
-    // Если компонент уже был — заменяем старый на новый
     replace(this.#tripInfoComponent, prevTripInfoComponent);
     remove(prevTripInfoComponent);
   }

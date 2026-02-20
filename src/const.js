@@ -1,6 +1,5 @@
 const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
-// Enum для типов фильтрации
 const FilterType = {
   EVERYTHING: 'everything',
   FUTURE: 'future',
@@ -9,7 +8,6 @@ const FilterType = {
   LOADING: 'loading',
 };
 
-// Enum для текстов заглушек
 const NoPointsTextType = {
   [FilterType.EVERYTHING]: 'Click New Event to create your first point',
   [FilterType.FUTURE]: 'There are no future events now',
@@ -39,19 +37,17 @@ const SORT_TYPES = [
   {type: SortType.OFFERS, isDisabled: true},
 ];
 
-// Что именно сделал пользователь (действие)
 const UserAction = {
   UPDATE_POINT: 'UPDATE_POINT',
   ADD_POINT: 'ADD_POINT',
   DELETE_POINT: 'DELETE_POINT',
 };
 
-// На что это влияет (что надо перерисовать)
 const UpdateType = {
-  PATCH: 'PATCH', // Обновить только одну карточку (например, Favorite)
-  MINOR: 'MINOR', // Обновить список (например, при сортировке)
-  MAJOR: 'MAJOR', // Обновить всё (например, при фильтрации)
-  INIT: 'INIT', // Данные успешно загружены с сервера, приложение может выходить из режима ожидания
+  PATCH: 'PATCH',
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR',
+  INIT: 'INIT',
 };
 
 const Method = {
@@ -61,7 +57,7 @@ const Method = {
   DELETE: 'DELETE',
 };
 
-const AUTHORIZATION = 'Basic hS2sfS44wcl1sa2j'; // Мой токен
+const AUTHORIZATION = 'Basic hS2sfS44wcl1sa2j';
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
 
 export {POINT_TYPES, NoPointsTextType, FilterType, Mode, SortType, SORT_TYPES, UserAction, UpdateType, Method, AUTHORIZATION, END_POINT};

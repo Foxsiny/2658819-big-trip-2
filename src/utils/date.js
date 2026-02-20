@@ -5,7 +5,8 @@ dayjs.extend(duration);
 const DATE_FORMAT = 'MMM D';
 const TIME_FORMAT = 'HH:mm';
 
-const humanizePointDate = (date) => date ? dayjs(date).format(DATE_FORMAT) : '';
+const humanizePointDate = (date, format = DATE_FORMAT) =>
+  date ? dayjs(date).format(format) : '';
 const humanizePointTime = (date) => date ? dayjs(date).format(TIME_FORMAT) : '';
 
 const getPointDuration = (dateFrom, dateTo) => {
@@ -15,14 +16,11 @@ const getPointDuration = (dateFrom, dateTo) => {
   const pointDuration = dayjs.duration(diff);
 
   if (pointDuration.asDays() >= 1) {
-    // Если больше суток: 01D 02H 30M
     const days = Math.floor(pointDuration.asDays());
     return `${days.toString().padStart(2, '0')}D ${pointDuration.format('HH[H] mm[M]')}`;
   } else if (pointDuration.asHours() >= 1) {
-    // Если больше часа: 02H 30M
     return pointDuration.format('HH[H] mm[M]');
   } else {
-    // Если меньше часа: 30M
     return pointDuration.format('mm[M]');
   }
 };
@@ -35,17 +33,14 @@ const isPointPresent = (dateFrom, dateTo) => {
     (dayjs(dateTo).isSame(now, 'D') || dayjs(dateTo).isAfter(now, 'D'));
 };
 
-// Сортировка по дате (от ранних к поздним)
 const sortPointDay = (pointA, pointB) => dayjs(pointA.dateFrom).diff(dayjs(pointB.dateFrom));
 
-// Сортировка по времени (от долгого к короткому)
 const sortPointTime = (pointA, pointB) => {
   const durationA = dayjs(pointA.dateTo).diff(dayjs(pointA.dateFrom));
   const durationB = dayjs(pointB.dateTo).diff(dayjs(pointB.dateFrom));
   return durationB - durationA;
 };
 
-// Сортировка по цене (от дорогого к дешевому)
 const sortPointPrice = (pointA, pointB) => pointB.basePrice - pointA.basePrice;
 
 export {

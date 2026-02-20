@@ -1,3 +1,4 @@
+// noinspection DuplicatedCode
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import {POINT_TYPES} from '../const.js';
 import {humanizePointDate} from '../utils/date';
@@ -5,7 +6,6 @@ import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
 
-// Шаблон типа события
 const createEventTypeItemTemplate = (type, currentType, isDisabled) => `
   <div class="event__type-item">
     <input
@@ -23,7 +23,6 @@ const createEventTypeItemTemplate = (type, currentType, isDisabled) => `
   </div>
 `;
 
-// Шаблон одного оффера
 const createOfferSelectorTemplate = (offer, isChecked, isDisabled) => {
   const {id, title, price} = offer;
 
@@ -36,7 +35,7 @@ const createOfferSelectorTemplate = (offer, isChecked, isDisabled) => {
         name="event-offer-${id}"
         data-offer-id="${id}"
         ${isChecked ? 'checked' : ''}
-        ${isDisabled ? 'disabled' : ''}  // Если форма заблокирована — нельзя менять офферы
+        ${isDisabled ? 'disabled' : ''}
       >
       <label class="event__offer-label" for="event-offer-${id}-1">
         <span class="event__offer-title">${title}</span>
@@ -47,7 +46,6 @@ const createOfferSelectorTemplate = (offer, isChecked, isDisabled) => {
   `;
 };
 
-// Функция секции офферов
 const createOffersSectionTemplate = (offers, selectedOfferIds, isDisabled) => {
   if (offers.length === 0) {
     return '';
@@ -57,12 +55,12 @@ const createOffersSectionTemplate = (offers, selectedOfferIds, isDisabled) => {
     <section class="event__section  event__section--offers">
       <h3 class="event__section-title  event__section-title--offers">Offers</h3>
       <div class="event__available-offers">
-        ${offers.map((offer) => createOfferSelectorTemplate(offer, selectedOfferIds.includes(offer.id)), isDisabled).join('')}
+
+        ${offers.map((offer) => createOfferSelectorTemplate(offer, selectedOfferIds.includes(offer.id), isDisabled)).join('')}
       </div>
     </section>`;
 };
 
-// Основная функция шаблона
 const createPointEditTemplate = (state, destinations, offers) => {
   const {type,
     basePrice,
@@ -150,7 +148,7 @@ const createPointEditTemplate = (state, destinations, offers) => {
         <section class="event__section  event__section--destination">
           <h3 class="event__section-title  event__section-title--destination">Destination</h3>
           <p class="event__destination-description">${pointDestination.description}</p>
-          ${pointDestination.pictures.length > 0 ? `
+          ${pointDestination?.pictures.length > 0 ? `
             <div class="event__photos-container">
               <div class="event__photos-tape">
                 ${pointDestination.pictures.map((pic) => `<img class="event__photo" src="${pic.src}" alt="${pic.description}">`).join('')}
@@ -200,7 +198,7 @@ export default class PointEditView extends AbstractStatefulView {
 
   get template() {
     return createPointEditTemplate(
-      this._state, // Передаем состояние вместо чистой точки
+      this._state,
       this.#destinations,
       this.#offers);
   }
@@ -219,7 +217,6 @@ export default class PointEditView extends AbstractStatefulView {
     }
   }
 
-  // Метод, который AbstractStatefulView вызывает автоматически при перерисовке
   _restoreHandlers() {
     this.element.querySelector('form')
       .addEventListener('submit', this.#formSubmitHandler);
@@ -247,7 +244,6 @@ export default class PointEditView extends AbstractStatefulView {
     this.#setDatepicker();
   }
 
-  // Вспомогательный метод для сброса состояния (нужен при отмене редактирования)
   reset(point) {
     this.updateElement(
       PointEditView.parsePointToState(point),
@@ -258,7 +254,7 @@ export default class PointEditView extends AbstractStatefulView {
     evt.preventDefault();
     this.updateElement({
       type: evt.target.value,
-      offers: [], // При смене типа сбрасываем выбранные офферы
+      offers: [],
     });
   };
 
@@ -278,12 +274,9 @@ export default class PointEditView extends AbstractStatefulView {
   #offerChangeHandler = (evt) => {
     evt.preventDefault();
 
-    // Достаем ID напрямую из data-атрибута
     const checkedOfferId = evt.target.dataset.offerId;
-    // Копируем текущий массив офферов из стейта
     const currentOffers = [...this._state.offers];
-    // Проверяем, есть ли уже этот оффер в списке
-    const index = currentOffers.indexOf(checkedOfferId);
+    const index = currentOffers.findIndex((id) => String(id) === String(checkedOfferId));
 
     if (index === -1) {
       currentOffers.push(checkedOfferId);
@@ -291,7 +284,6 @@ export default class PointEditView extends AbstractStatefulView {
       currentOffers.splice(index, 1);
     }
 
-    // Обновляем состояние БЕЗ перерисовки всей формы
     this._setState({
       offers: currentOffers,
     });
@@ -300,19 +292,16 @@ export default class PointEditView extends AbstractStatefulView {
   #priceChangeHandler = (evt) => {
     evt.preventDefault();
 
-    // Обновляем стейт "тихо" (через _setState), чтобы форма не моргала при вводе
     this._setState({
       basePrice: Number(evt.target.value),
     });
   };
 
-  // Обработчик отправки формы
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
     this.#handleFormSubmit?.(PointEditView.parseStateToPoint(this._state));
   };
 
-  // Обработчик клика по стрелочке вверх
   #rollupClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleRollupClick?.();
@@ -342,36 +331,37 @@ export default class PointEditView extends AbstractStatefulView {
     if (this._state.isDisabled) {
       return;
     }
-    // Календарь для даты начала, "ОТ"
+    this.#datepickerFrom?.destroy();
+    this.#datepickerTo?.destroy();
+
+    const commonConfig = {
+      dateFormat: 'd/m/y H:i',
+      enableTime: true,
+      'time_24hr': true,
+      minuteIncrement: 1,
+    };
+
     this.#datepickerFrom = flatpickr(
       this.element.querySelector('#event-start-time-1'),
       {
-        dateFormat: 'd/m/y H:i',
+        ...commonConfig,
         defaultDate: this._state.dateFrom,
-        enableTime: true,
-        'time_24hr': true,
-        minuteIncrement: 1,
         maxDate: this._state.dateTo,
         onChange: this.#dateFromChangeHandler,
       },
     );
 
-    // Календарь для даты окончания, "ДО"
     this.#datepickerTo = flatpickr(
       this.element.querySelector('#event-end-time-1'),
       {
-        dateFormat: 'd/m/y H:i',
+        ...commonConfig,
         defaultDate: this._state.dateTo,
-        enableTime: true,
-        'time_24hr': true,
-        minuteIncrement: 1,
         minDate: this._state.dateFrom,
         onChange: this.#dateToChangeHandler,
       },
     );
   }
 
-  // 1. Метод для состояния сохранения
   setSaving() {
     this.updateElement({
       isDisabled: true,
@@ -379,7 +369,6 @@ export default class PointEditView extends AbstractStatefulView {
     });
   }
 
-  // 2. Метод для состояния удаления
   setDeleting() {
     this.updateElement({
       isDisabled: true,
@@ -387,7 +376,6 @@ export default class PointEditView extends AbstractStatefulView {
     });
   }
 
-  // 3. Метод для отмены блокировки (если произошла ошибка)
   setAborting() {
     const resetFormState = () => {
       this.updateElement({
@@ -397,7 +385,7 @@ export default class PointEditView extends AbstractStatefulView {
       });
     };
 
-    this.shake(resetFormState); // Вызываем покачивание из AbstractView
+    this.shake(resetFormState);
   }
 
   static parsePointToState(point) {

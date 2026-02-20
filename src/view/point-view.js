@@ -1,15 +1,18 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import {humanizePointDate, humanizePointTime, getPointDuration} from '../utils/date.js';
 
-const createPointTemplate = (point, destination, selectedOffers) => {
+const createPointTemplate = (point, destination, offers) => {
   const {basePrice, dateFrom, dateTo, isFavorite, type} = point;
 
   const duration = getPointDuration(dateFrom, dateTo);
 
-  // Если isFavorite true, добавляем активный класс
   const favoriteClassName = isFavorite
     ? 'event__favorite-btn--active'
     : '';
+
+  const selectedOffers = offers.filter((offer) =>
+    point.offers.some((selectedId) => String(selectedId) === String(offer.id))
+  );
 
   const selectedOffersPrice = selectedOffers.reduce((sum, offer) => sum + offer.price, 0);
 
@@ -64,7 +67,7 @@ export default class PointView extends AbstractView {
   #destination = null;
   #offers = null;
   #handleEditClick = null;
-  #handleFavoriteClick = null; // Новое поле для колбэка
+  #handleFavoriteClick = null;
 
   constructor({point, destination, offers, onEditClick, onFavoriteClick}) {
     super();
@@ -82,24 +85,20 @@ export default class PointView extends AbstractView {
     return createPointTemplate(this.#point, this.#destination, this.#offers);
   }
 
-  // Приватный метод-обработчик (стрелочная функция для сохранения контекста)
   #editClickHandler = (evt) => {
     evt.preventDefault();
-    this.#handleEditClick?.(); // Вызываем переданную функцию из презентера
+    this.#handleEditClick?.();
   };
 
-  // Новый обработчик
   #favoriteClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleFavoriteClick?.();
   };
 
-  // Метод для установки слушателей событий
   #setInnerHandlers() {
     this.element.querySelector('.event__rollup-btn')
       .addEventListener('click', this.#editClickHandler);
 
-    // Добавляем слушатель на звездочку
     this.element.querySelector('.event__favorite-btn')
       .addEventListener('click', this.#favoriteClickHandler);
   }
