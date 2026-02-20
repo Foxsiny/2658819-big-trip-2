@@ -1,7 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import { SORT_TYPES } from '../const.js';
 
-// Шаблон одного элемента сортировки
 const createSortingItemTemplate = (sortItem, currentSortType) => {
   const {type, isDisabled} = sortItem;
 
@@ -23,7 +22,6 @@ const createSortingItemTemplate = (sortItem, currentSortType) => {
   `;
 };
 
-// Общий шаблон формы сортировки
 const createSortingTemplate = (currentSortType) => `
   <form class="trip-events__trip-sort  trip-sort" action="#" method="get">
     ${SORT_TYPES.map((sortItem) => createSortingItemTemplate(sortItem, currentSortType)).join('')}
@@ -32,9 +30,8 @@ const createSortingTemplate = (currentSortType) => `
 
 export default class SortingView extends AbstractView {
   #handleSortTypeChange = null;
-  #currentSortType = null; // Добавляем поле для хранения текущего выбора
+  #currentSortType = null;
 
-  // Теперь принимаем currentSortType из Презентера
   constructor({currentSortType, onSortTypeChange}) {
     super();
     this.#currentSortType = currentSortType;
@@ -54,7 +51,6 @@ export default class SortingView extends AbstractView {
 
     const sortType = evt.target.dataset.sortType;
 
-    // Если у лейбла нет атрибута (клик по Event или Offers), ничего не делаем
     if (!sortType) {
       return;
     }

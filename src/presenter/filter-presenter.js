@@ -22,7 +22,6 @@ export default class FilterPresenter {
   get filters() {
     const points = this.#pointsModel.points;
 
-    // Генерируем данные для FilterView: тип и количество подходящих точек
     return Object.entries(filter).map(([type, filterFn]) => ({
       type,
       count: filterFn(points).length,
@@ -49,14 +48,13 @@ export default class FilterPresenter {
   }
 
   #handleModelEvent = () => {
-    this.init(); // Перерисовываем фильтры при любом шорохе в моделях
+    this.init();
   };
 
   #handleFilterTypeChange = (filterType) => {
     if (this.#filterModel.filter === filterType) {
       return;
     }
-    // При смене фильтра — это MAJOR обновление (перерисовываем всю доску)
     this.#filterModel.setFilter(UpdateType.MAJOR, filterType);
   };
 }

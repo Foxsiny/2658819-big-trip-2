@@ -5,14 +5,14 @@ import {Mode, UserAction, UpdateType} from '../const.js';
 
 export default class PointPresenter {
   #listContainer = null;
-  #handleDataChange = null; // Поле для колбэка обновления данных
-  #handleModeChange = null; // Поле для колбэка смены режима
+  #handleDataChange = null;
+  #handleModeChange = null;
 
   #pointComponent = null;
   #pointEditComponent = null;
 
   #point = null;
-  #mode = Mode.DEFAULT; // По умолчанию карточка в обычном режиме
+  #mode = Mode.DEFAULT;
 
   constructor({listContainer, onDataChange, onModeChange}) {
     this.#listContainer = listContainer;
@@ -23,41 +23,47 @@ export default class PointPresenter {
   init(point, destinations, offers) {
     this.#point = point;
 
-    const destination = destinations.find((d) => d.id === point.destination);
-    const pointOffers = offers.find((o) => o.type === point.type)?.offers || [];
+    if (!destinations || destinations.length === 0 || !offers || offers.length === 0) {
+      return;
+    }
 
     const prevPointComponent = this.#pointComponent;
     const prevPointEditComponent = this.#pointEditComponent;
 
+    const destination = destinations.find((d) => String(d.id) === String(this.#point.destination));
+    const offersByType = offers.find((o) => o.type === this.#point.type)?.offers || [];
+
     this.#pointComponent = new PointView({
       point: this.#point,
-      destination, // Передаем конкретный объект
-      offers: pointOffers, // Передаем конкретный массив
+      destination: destination,
+      offers: offersByType, // Передаем только офферы нужного типа
       onEditClick: this.#handleEditClick,
       onFavoriteClick: this.#handleFavoriteClick,
     });
 
     this.#pointEditComponent = new PointEditView({
       point: this.#point,
-      destinations, // Все города для выпадающего списка
-      offers, // Вообще все офферы всех типов
+      destinations: destinations,
+      offers: offers,
       onFormSubmit: this.#handleFormSubmit,
       onRollupClick: this.#handleRollupClick,
       onDeleteClick: this.#handleDeleteClick,
     });
 
-    // Если компоненты уже были отрисованы, заменяем их
     if (prevPointComponent === null || prevPointEditComponent === null) {
       render(this.#pointComponent, this.#listContainer);
       return;
     }
 
-    if (this.#listContainer.contains(prevPointComponent.element)) {
+    if (this.#mode === Mode.DEFAULT) {
       replace(this.#pointComponent, prevPointComponent);
     }
 
-    if (this.#listContainer.contains(prevPointEditComponent.element)) {
-      replace(this.#pointEditComponent, prevPointEditComponent);
+    if (this.#mode === Mode.EDITING) {
+      if (prevPointEditComponent) {
+        replace(this.#pointComponent, prevPointEditComponent);
+      }
+      this.#mode = Mode.DEFAULT;
     }
 
     remove(prevPointComponent);
@@ -67,6 +73,7 @@ export default class PointPresenter {
   destroy() {
     remove(this.#pointComponent);
     remove(this.#pointEditComponent);
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
   resetView() {
@@ -77,9 +84,9 @@ export default class PointPresenter {
   }
 
   #replaceCardToForm() {
+    this.#handleModeChange?.();
     replace(this.#pointEditComponent, this.#pointComponent);
     document.addEventListener('keydown', this.#escKeyDownHandler);
-    this.#handleModeChange?.();
     this.#mode = Mode.EDITING;
   }
 
@@ -101,12 +108,16 @@ export default class PointPresenter {
     this.#replaceCardToForm();
   };
 
-  // Добавляем метод для обработки клика по звёздочке
-  #handleFavoriteClick = () => {
-    this.#handleDataChange?.({
-      ...this.#point,
-      isFavorite: !this.#point.isFavorite
-    });
+  #handleFavoriteClick = async () => {
+    try {
+      await this.#handleDataChange?.(
+        UserAction.UPDATE_POINT,
+        UpdateType.PATCH,
+        {...this.#point, isFavorite: !this.#point.isFavorite}
+      );
+    } catch (err) {
+      this.#pointComponent.shake(); // Трясем карточку, если ошибка
+    }
   };
 
   #handleRollupClick = () => {
@@ -115,56 +126,48 @@ export default class PointPresenter {
   };
 
   #handleFormSubmit = async (point) => {
-    // 1. Командуем вьюхе показать состояние сохранения
     this.#pointEditComponent.setSaving();
 
     try {
-      // 2. Ждем ответа от модели (которая теперь идет на сервер)
-      // ВАЖНО: используем await, чтобы код замер до получения ответа
       await this.#handleDataChange?.(
         UserAction.UPDATE_POINT,
         UpdateType.MINOR,
         point,
       );
-
-      // 3. Если всё прошло успешно, возвращаемся к карточке
-      this.#replaceFormToCard();
-
     } catch (err) {
-      // 4. Если сервер выдал ошибку — вызываем эффект тряски и разблокировку
       this.#pointEditComponent.setAborting();
     }
   };
 
-  #handleDeleteClick = (point) => {
-    // 1. Командуем вьюхе показать состояние удаления
+  #handleDeleteClick = async (point) => {
     this.#pointEditComponent.setDeleting();
 
-    // 2. Отправляем сигнал на удаление
-    // this.#handleDataChange?.(
-    //   UserAction.DELETE_POINT,
-    //   UpdateType.MINOR, // Чтобы весь список перерисовался и точка исчезла
-    //   point,
-    // );
-    setTimeout(() => {
-      this.#handleDataChange?.(
+    try {
+      await this.#handleDataChange?.(
         UserAction.DELETE_POINT,
         UpdateType.MINOR,
         point,
       );
-      // Нам не нужно вызывать destroy(), так как BoardPresenter
-      // сам перерисует список (UpdateType.MINOR) и удалит этот презентер.
-    }, 2000);
+    } catch (err) {
+      this.#pointEditComponent.setAborting();
+    }
   };
+
+  setSaving() {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointEditComponent.updateElement({
+        isDisabled: true,
+        isSaving: true,
+      });
+    }
+  }
+
 
   setAborting() {
     if (this.#mode === Mode.DEFAULT) {
-      // Трясем просто карточку (например, если не сохранилась "звездочка")
       this.#pointComponent.shake();
       return;
     }
-
-    // Трясем форму и возвращаем ей управление
     this.#pointEditComponent.setAborting();
   }
 }

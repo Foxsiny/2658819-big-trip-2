@@ -1,10 +1,10 @@
+// noinspection DuplicatedCode
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import {POINT_TYPES} from '../const.js';
 import {humanizePointDate} from '../utils/date';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
-// Вспомогательная функция для создания одного пункта списка типов
 const createEventTypeItemTemplate = (type, currentType, isDisabled) => `
   <div class="event__type-item">
     <input
@@ -22,7 +22,6 @@ const createEventTypeItemTemplate = (type, currentType, isDisabled) => `
   </div>
 `;
 
-// Вспомогательная функция для генерации одной опции
 const createOfferSelectorTemplate = (offer, isChecked, isDisabled) => {
   const {id, title, price} = offer;
 
@@ -46,7 +45,6 @@ const createOfferSelectorTemplate = (offer, isChecked, isDisabled) => {
   `;
 };
 
-// Функция для создания ВСЕЙ секции офферов
 const createOffersSectionTemplate = (offers, selectedOfferIds, isDisabled) => {
   if (!offers || offers.length === 0) {
     return '';
@@ -56,7 +54,7 @@ const createOffersSectionTemplate = (offers, selectedOfferIds, isDisabled) => {
     <section class="event__section  event__section--offers">
       <h3 class="event__section-title  event__section-title--offers">Offers</h3>
       <div class="event__available-offers">
-        ${offers.map((offer) => createOfferSelectorTemplate(offer, selectedOfferIds.includes(offer.id)), isDisabled).join('')}
+        ${offers.map((offer) => createOfferSelectorTemplate(offer, selectedOfferIds.includes(offer.id), isDisabled)).join('')}
       </div>
     </section>`;
 };
@@ -152,10 +150,12 @@ export default class PointAddView extends AbstractStatefulView {
   constructor({destinations, offers, onFormSubmit, onCancelClick}) {
     super();
 
+    const defaultDestinationId = destinations.length > 0 ? destinations[0].id : '';
+
     // 1. Создаем переменную
     const blankPoint = {
       type: 'flight',
-      destination: destinations[0].id,
+      destination: defaultDestinationId,
       basePrice: 0,
       offers: [],
       dateFrom: new Date(), // Добавь дефолтные даты, чтобы flatpickr не ругался
@@ -261,37 +261,37 @@ export default class PointAddView extends AbstractStatefulView {
     if (this._state.isDisabled) {
       return;
     }
-    // Календарь для даты начала, "ОТ"
+    this.#datepickerFrom?.destroy();
+    this.#datepickerTo?.destroy();
+
+    const commonConfig = {
+      dateFormat: 'd/m/y H:i',
+      enableTime: true,
+      'time_24hr': true,
+      minuteIncrement: 1,
+    };
+
     this.#datepickerFrom = flatpickr(
       this.element.querySelector('#event-start-time-1'),
       {
-        dateFormat: 'd/m/y H:i',
+        ...commonConfig,
         defaultDate: this._state.dateFrom,
-        enableTime: true,
-        'time_24hr': true,
-        minuteIncrement: 1,
         maxDate: this._state.dateTo,
         onChange: this.#dateFromChangeHandler,
-        // noinspection DuplicatedCode
       },
     );
 
-    // Календарь для даты окончания, "ДО"
     this.#datepickerTo = flatpickr(
       this.element.querySelector('#event-end-time-1'),
       {
-        dateFormat: 'd/m/y H:i',
+        ...commonConfig,
         defaultDate: this._state.dateTo,
-        enableTime: true,
-        'time_24hr': true,
-        minuteIncrement: 1,
         minDate: this._state.dateFrom,
         onChange: this.#dateToChangeHandler,
       },
     );
   }
 
-  // 1. Метод для состояния сохранения
   setSaving() {
     this.updateElement({
       isDisabled: true,
@@ -299,7 +299,6 @@ export default class PointAddView extends AbstractStatefulView {
     });
   }
 
-  // 2. Метод для состояния удаления
   setDeleting() {
     this.updateElement({
       isDisabled: true,
@@ -307,7 +306,6 @@ export default class PointAddView extends AbstractStatefulView {
     });
   }
 
-  // 3. Метод для отмены блокировки (если произошла ошибка)
   setAborting() {
     const resetFormState = () => {
       this.updateElement({
@@ -317,7 +315,7 @@ export default class PointAddView extends AbstractStatefulView {
       });
     };
 
-    this.shake(resetFormState); // Вызываем покачивание из AbstractView
+    this.shake(resetFormState);
   }
 
   static parsePointToState(point) {

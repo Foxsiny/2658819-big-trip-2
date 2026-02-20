@@ -34,7 +34,6 @@ const createFilterTemplate = (filterItems, currentFilterType) => {
   `;
 };
 
-// 2. Наследуемся от AbstractView
 export default class FilterView extends AbstractView {
   #filters = null;
   #currentFilterType = null;
@@ -49,14 +48,12 @@ export default class FilterView extends AbstractView {
     this.element.addEventListener('change', this.#filterTypeChangeHandler);
   }
 
-  // 3. Заменяем метод getTemplate() на геттер template
   get template() {
     return createFilterTemplate(this.#filters, this.#currentFilterType);
   }
 
   #filterTypeChangeHandler = (evt) => {
     evt.preventDefault();
-    // Вызываем колбэк и передаем в него value выбранного инпута (например, 'future')
     this.#handleFilterTypeChange?.(evt.target.value);
   };
 }

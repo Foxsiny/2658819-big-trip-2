@@ -1,4 +1,3 @@
-
 import PointsModel from './model/points-model.js';
 import FilterModel from './model/filter-model.js';
 import MainPresenter from './presenter/main-presenter.js';
@@ -11,10 +10,12 @@ const filterElement = tripMainElement.querySelector('.trip-controls__filters');
 const tripEventsElement = document.querySelector('.trip-events');
 const newPointButtonElement = document.querySelector('.trip-main__event-add-btn');
 
+newPointButtonElement.disabled = true;
+
 const pointsApiService = new PointsApiService(END_POINT, AUTHORIZATION);
 
 const pointsModel = new PointsModel({
-  pointsApiService: pointsApiService // Передаем сервис внутрь
+  pointsApiService: pointsApiService
 });
 
 const filterModel = new FilterModel();
@@ -38,13 +39,18 @@ const mainPresenter = new MainPresenter({
 });
 
 newPointButtonElement.addEventListener('click', () => {
-  mainPresenter.createPoint(); // Создаем метод-посредник
-  newPointButtonElement.disabled = true; // Блокируем кнопку
+  mainPresenter.createPoint();
+  newPointButtonElement.disabled = true;
 });
 
 filterPresenter.init();
 mainPresenter.init();
 
 // ЗАПУСК ПРИЛОЖЕНИЯ
-// Вызываем асинхронный init у модели.
-pointsModel.init().catch(() => {});
+pointsModel.init()
+  .finally(() => {
+    newPointButtonElement.disabled = false;
+  })
+  .catch(() => {
+    newPointButtonElement.disabled = true;
+  });

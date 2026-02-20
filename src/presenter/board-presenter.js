@@ -1,4 +1,4 @@
-import {render, remove} from '../framework/render.js';
+import {render, remove, RenderPosition} from '../framework/render.js';
 import SortingView from '../view/sorting-view.js';
 import ListView from '../view/list-view.js';
 import NoPointView from '../view/no-point-view.js';
@@ -16,10 +16,9 @@ export default class BoardPresenter {
   #newPointPresenter = null;
   #isLoading = true;
 
-  // Хранилище для всех презентеров точек (ID точки -> Презентер точки)
   #pointPresenters = new Map();
 
-  #currentSortType = SortType.DAY; // Храним текущий тип
+  #currentSortType = SortType.DAY;
 
   #sortComponent = null;
   #noPointComponent = null;
@@ -42,9 +41,10 @@ export default class BoardPresenter {
 
   // Геттер - единственный источник данных для отрисовки
   get points() {
-    const filterType = this.#filterModel.filter; // 1. Смотрим какой фильтр выбран
-    const points = this.#pointsModel.points; // 2. Берем все точки
-    const filteredPoints = filter[filterType](points); // 3. Отсеиваем лишние (Future/Past)
+    const points = this.#pointsModel.points;
+
+    const filterType = this.#filterModel.filter;
+    const filteredPoints = filter[filterType](points);
 
     switch (this.#currentSortType) {
       case SortType.TIME:
@@ -56,26 +56,12 @@ export default class BoardPresenter {
     return [...filteredPoints].sort(sortPointDay);
   }
 
-  init() {
-    this.#clearBoard();
-    this.#renderBoard();
-    // Имитируем задержку сети при первом запуске
-    setTimeout(() => {
-      this.#isLoading = false; // Выключаем режим загрузки
-      this.#clearBoard(); // Стираем надпись Loading
-      this.#renderBoard(); // Рисуем настоящую доску с кнопками и точками
-    }, 2000);
-    // this.#isLoading = false;
-    // this.#clearBoard();
-    // this.#renderBoard();
-  }
+  init() {}
 
-  // Вспомогательный приватный метод для отрисовки всей "доски"
   #renderBoard() {
-    // 1. Если мы еще грузимся — рисуем ТОЛЬКО надпись Loading
     if (this.#isLoading) {
       this.#renderLoading();
-      return; // Выходим, чтобы не рисовать сортировку и пустые списки
+      return;
     }
 
     const points = this.points;
@@ -106,11 +92,15 @@ export default class BoardPresenter {
   }
 
   #renderSort() {
+    if (this.#sortComponent !== null) {
+      return;
+    }
+
     this.#sortComponent = new SortingView({
       currentSortType: this.#currentSortType,
       onSortTypeChange: this.#handleSortTypeChange
     });
-    render(this.#sortComponent, this.#boardContainer);
+    render(this.#sortComponent, this.#boardContainer, RenderPosition.AFTERBEGIN);
   }
 
   #handleSortTypeChange = (sortType) => {
@@ -124,7 +114,6 @@ export default class BoardPresenter {
     this.#renderBoard();
   };
 
-  // Приватный метод для отрисовки одной точки
   #renderPoint(point) {
     const pointPresenter = new PointPresenter({
       listContainer: this.#listComponent.element,
@@ -133,11 +122,10 @@ export default class BoardPresenter {
     });
 
     pointPresenter.init(point, this.#pointsModel.destinations, this.#pointsModel.offers);
-    // Сохраняем презентер в Map
+
     this.#pointPresenters.set(point.id, pointPresenter);
   }
 
-  // Метод, который закрывает все открытые формы
   #handleModeChange = () => {
     this.#newPointPresenter.destroy();
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
@@ -146,13 +134,27 @@ export default class BoardPresenter {
   #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_POINT:
-        await this.#pointsModel.updatePoint(updateType, update);
+        try {
+          await this.#pointsModel.updatePoint(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(String(update.id)).setAborting();
+        }
         break;
-      case UserAction.ADD_POINT:
-        await this.#pointsModel.addPoint(updateType, update);
-        break;
+
       case UserAction.DELETE_POINT:
-        await this.#pointsModel.deletePoint(updateType, update);
+        try {
+          await this.#pointsModel.deletePoint(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(String(update.id)).setAborting();
+        }
+        break;
+
+      case UserAction.ADD_POINT:
+        try {
+          await this.#pointsModel.addPoint(updateType, update);
+        } catch (err) {
+          this.#newPointPresenter.setAborting();
+        }
         break;
     }
   };
@@ -160,36 +162,38 @@ export default class BoardPresenter {
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        // Обновляем только одну карточку (в списке)
-        this.#pointPresenters.get(data.id).init(data, this.#pointsModel.destinations, this.#pointsModel.offers);
+        this.#pointPresenters.get(data.id)?.init(data, this.#pointsModel.destinations, this.#pointsModel.offers);
         break;
       case UpdateType.MINOR:
-        // Обновляем список (например, при сортировке)
         this.#clearBoard();
         this.#renderBoard();
         break;
       case UpdateType.MAJOR:
-        // Обновляем всю доску (например, при фильтрации)
         this.#clearBoard({resetSortType: true});
         this.#renderBoard();
         break;
       case UpdateType.INIT:
         this.#isLoading = false;
+        if (this.#noPointComponent) {
+          remove(this.#noPointComponent);
+        }
         this.#clearBoard();
         this.#renderBoard();
         break;
     }
   };
 
-  // Метод для полной очистки доски
   #clearBoard({resetSortType = false} = {}) {
     this.#newPointPresenter.destroy();
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
 
     remove(this.#sortComponent);
+    this.#sortComponent = null;
+
     if (this.#noPointComponent) {
       remove(this.#noPointComponent);
+      this.#noPointComponent = null;
     }
 
     if (resetSortType) {
@@ -198,7 +202,6 @@ export default class BoardPresenter {
   }
 
   createPoint() {
-    // Сбрасываем фильтры и сортировку перед открытием формы (по ТЗ)
     this.#currentSortType = SortType.DAY;
     this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
 
