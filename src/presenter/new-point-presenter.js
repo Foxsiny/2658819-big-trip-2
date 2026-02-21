@@ -36,7 +36,6 @@ export default class NewPointPresenter {
   }
 
   destroy() {
-    console.trace('КТО ИМЕННО ВЫЗВАЛ DESTROY НОВОЙ ТОЧКИ?');
     if (this.#pointAddComponent === null) {
       return;
     }

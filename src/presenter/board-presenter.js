@@ -171,7 +171,6 @@ export default class BoardPresenter {
         this.#renderBoard();
         break;
       case UpdateType.MAJOR:
-        console.log('--- ДОСКА: Получен MAJOR, начинаю полную очистку ---');
         this.#clearBoard({resetSortType: true});
         this.#renderBoard();
         break;
@@ -187,7 +186,6 @@ export default class BoardPresenter {
   };
 
   #clearBoard({resetSortType = false} = {}) {
-    console.log('--- CLEAR_BOARD запущен ---');
     this.#newPointPresenter.destroy();
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
