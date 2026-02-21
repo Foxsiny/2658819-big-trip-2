@@ -102,13 +102,13 @@ export default class PointsModel extends Observable {
       this.#destinations = destinations;
       this.#offers = offers;
 
-      this.#isLoading = false;
     } catch (err) {
       this.#points = [];
       this.#destinations = [];
       this.#offers = [];
       this.#isLoading = false;
-    }finally {
+    } finally {
+      this.#isLoading = false;
       this._notify(UpdateType.INIT, undefined);
     }
   }
@@ -132,6 +132,9 @@ export default class PointsModel extends Observable {
   }
 
   #adaptToServer(point) {
+    if (!point.destination || !point.dateFrom || !point.dateTo || isNaN(Number(point.basePrice)) || Number(point.basePrice) <= 0) {
+      throw new Error('Incomplete or invalid point data');
+    }
     const adaptedPoint = {
       ...point,
       'base_price': Number(point.basePrice),

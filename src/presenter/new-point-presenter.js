@@ -21,7 +21,7 @@ export default class NewPointPresenter {
       return;
     }
 
-    this.#handleModeChange?.();
+    // this.#handleModeChange?.();
 
     this.#pointAddComponent = new PointAddView({
       destinations,
@@ -36,6 +36,7 @@ export default class NewPointPresenter {
   }
 
   destroy() {
+    console.trace('КТО ИМЕННО ВЫЗВАЛ DESTROY НОВОЙ ТОЧКИ?');
     if (this.#pointAddComponent === null) {
       return;
     }
@@ -57,7 +58,7 @@ export default class NewPointPresenter {
         UpdateType.MINOR,
         point,
       );
-      this.destroy();
+      // this.destroy();
     } catch (err) {
       this.#pointAddComponent.setAborting();
     }

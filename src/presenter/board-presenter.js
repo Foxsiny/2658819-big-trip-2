@@ -56,7 +56,9 @@ export default class BoardPresenter {
     return [...filteredPoints].sort(sortPointDay);
   }
 
-  init() {}
+  init() {
+    this.#renderBoard();
+  }
 
   #renderBoard() {
     if (this.#isLoading) {
@@ -104,7 +106,6 @@ export default class BoardPresenter {
   }
 
   #handleSortTypeChange = (sortType) => {
-    // Если нажали на ту же кнопку — ничего не делаем
     if (this.#currentSortType === sortType) {
       return;
     }
@@ -154,6 +155,7 @@ export default class BoardPresenter {
           await this.#pointsModel.addPoint(updateType, update);
         } catch (err) {
           this.#newPointPresenter.setAborting();
+          throw err;
         }
         break;
     }
@@ -169,6 +171,7 @@ export default class BoardPresenter {
         this.#renderBoard();
         break;
       case UpdateType.MAJOR:
+        console.log('--- ДОСКА: Получен MAJOR, начинаю полную очистку ---');
         this.#clearBoard({resetSortType: true});
         this.#renderBoard();
         break;
@@ -184,6 +187,7 @@ export default class BoardPresenter {
   };
 
   #clearBoard({resetSortType = false} = {}) {
+    console.log('--- CLEAR_BOARD запущен ---');
     this.#newPointPresenter.destroy();
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
@@ -203,9 +207,9 @@ export default class BoardPresenter {
 
   createPoint() {
     this.#currentSortType = SortType.DAY;
-    this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+    // this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
 
-    this.#handleModeChange();
+    // this.#handleModeChange();
 
     this.#newPointPresenter.init(this.#pointsModel.destinations, this.#pointsModel.offers);
   }
