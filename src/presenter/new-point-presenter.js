@@ -1,12 +1,14 @@
 import {render, remove, RenderPosition} from '../framework/render.js';
-import PointAddView from '../view/point-add-view.js';
-import {UserAction, UpdateType} from '../const.js';
+import PointEditView from '../view/point-edit-view.js';
+import {UserAction, UpdateType, BLANK_POINT} from '../const.js';
 
 export default class NewPointPresenter {
   #listContainer = null;
   #handleDataChange = null;
   #handleDestroy = null;
-  #pointAddComponent = null;
+  #pointEditComponent = null;
+  #destinations = null;
+  #offers = null;
   #handleModeChange = null;
 
   constructor({ listContainer, onDataChange, onDestroy, onModeChange }) {
@@ -17,39 +19,42 @@ export default class NewPointPresenter {
   }
 
   init(destinations, offers) {
-    if (this.#pointAddComponent !== null) {
+    this.#destinations = destinations;
+    this.#offers = offers;
+
+    if (this.#pointEditComponent !== null) {
       return;
     }
 
-    // this.#handleModeChange?.();
-
-    this.#pointAddComponent = new PointAddView({
-      destinations,
-      offers,
+    this.#pointEditComponent = new PointEditView({
+      point: BLANK_POINT,
+      destinations: this.#destinations,
+      offers: this.#offers,
       onFormSubmit: this.#handleFormSubmit,
-      onCancelClick: this.#handleCancelClick,
+      onDeleteClick: this.#handleCancelClick,
+      isNewPoint: true,
     });
 
-    render(this.#pointAddComponent, this.#listContainer, RenderPosition.AFTERBEGIN);
+    render(this.#pointEditComponent, this.#listContainer, RenderPosition.AFTERBEGIN);
 
     document.addEventListener('keydown', this.#escKeyDownHandler);
   }
 
   destroy() {
-    if (this.#pointAddComponent === null) {
+    if (this.#pointEditComponent === null) {
       return;
     }
 
     this.#handleDestroy?.();
 
-    remove(this.#pointAddComponent);
-    this.#pointAddComponent = null;
+    remove(this.#pointEditComponent);
+    this.#pointEditComponent = null;
 
     document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
   #handleFormSubmit = async (point) => {
-    this.#pointAddComponent.setSaving();
+    this.#pointEditComponent.setSaving();
 
     try {
       await this.#handleDataChange?.(
@@ -59,7 +64,7 @@ export default class NewPointPresenter {
       );
       // this.destroy();
     } catch (err) {
-      this.#pointAddComponent.setAborting();
+      this.#pointEditComponent.setAborting();
     }
   };
 
@@ -75,6 +80,6 @@ export default class NewPointPresenter {
   };
 
   setAborting() {
-    this.#pointAddComponent.setAborting();
+    this.#pointEditComponent.setAborting();
   }
 }

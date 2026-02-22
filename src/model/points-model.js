@@ -106,7 +106,7 @@ export default class PointsModel extends Observable {
       this.#points = [];
       this.#destinations = [];
       this.#offers = [];
-      this.#isLoading = false;
+
     } finally {
       this.#isLoading = false;
       this._notify(UpdateType.INIT, undefined);
