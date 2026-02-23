@@ -57,7 +57,17 @@ const Method = {
   DELETE: 'DELETE',
 };
 
+const BLANK_POINT = {
+  type: 'flight',
+  destination: '',
+  basePrice: 0,
+  offers: [],
+  dateFrom: new Date(),
+  dateTo: new Date(),
+  isFavorite: false
+};
+
 const AUTHORIZATION = 'Basic hS2sfS44wcl1sa2j';
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
 
-export {POINT_TYPES, NoPointsTextType, FilterType, Mode, SortType, SORT_TYPES, UserAction, UpdateType, Method, AUTHORIZATION, END_POINT};
+export {POINT_TYPES, NoPointsTextType, FilterType, Mode, SortType, SORT_TYPES, UserAction, UpdateType, Method, AUTHORIZATION, END_POINT, BLANK_POINT};

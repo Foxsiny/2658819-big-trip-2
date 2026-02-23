@@ -1,4 +1,4 @@
-// noinspection DuplicatedCode
+
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import {POINT_TYPES} from '../const.js';
 import {humanizePointDate} from '../utils/date';
@@ -61,7 +61,7 @@ const createOffersSectionTemplate = (offers, selectedOfferIds, isDisabled) => {
     </section>`;
 };
 
-const createPointEditTemplate = (state, destinations, offers) => {
+const createPointEditTemplate = (state, destinations, offers, isNewPoint) => {
   const {type,
     basePrice,
     destination: destinationId,
@@ -73,6 +73,18 @@ const createPointEditTemplate = (state, destinations, offers) => {
     isDeleting
   }
     = state;
+
+  let resetBtnText = isDeleting ? 'Deleting...' : 'Delete';
+
+  if (isNewPoint) {
+    resetBtnText = 'Cancel';
+  }
+
+  const rollupBtnTemplate = isNewPoint
+    ? ''
+    : `<button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}>
+        <span class="visually-hidden">Open event</span>
+      </button>`;
 
   const pointDestination = destinations.find((dest) => dest.id === destinationId);
 
@@ -136,10 +148,8 @@ const createPointEditTemplate = (state, destinations, offers) => {
       </div>
 
       <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
-      <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${isDeleting ? 'Deleting...' : 'Delete'}</button>
-      <button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}>
-        <span class="visually-hidden">Open event</span>
-      </button>
+      <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${resetBtnText}</button>
+      ${rollupBtnTemplate}
     </header>
     <section class="event__details">
      ${createOffersSectionTemplate(offersByType, selectedOfferIds, isDisabled)}
@@ -148,7 +158,7 @@ const createPointEditTemplate = (state, destinations, offers) => {
         <section class="event__section  event__section--destination">
           <h3 class="event__section-title  event__section-title--destination">Destination</h3>
           <p class="event__destination-description">${pointDestination.description}</p>
-          ${pointDestination?.pictures.length > 0 ? `
+          ${pointDestination.pictures && pointDestination?.pictures.length > 0 ? `
             <div class="event__photos-container">
               <div class="event__photos-tape">
                 ${pointDestination.pictures.map((pic) => `<img class="event__photo" src="${pic.src}" alt="${pic.description}">`).join('')}
@@ -173,7 +183,6 @@ export default class PointEditView extends AbstractStatefulView {
   constructor({ point, destinations, offers, onFormSubmit, onRollupClick, onDeleteClick }) {
     super();
 
-    // Вместо прямого сохранения point, создаем состояние
     this._setState(PointEditView.parsePointToState(point));
 
     this.#destinations = destinations;
@@ -220,26 +229,24 @@ export default class PointEditView extends AbstractStatefulView {
   _restoreHandlers() {
     this.element.querySelector('form')
       .addEventListener('submit', this.#formSubmitHandler);
-    this.element.querySelector('.event__rollup-btn')
-      .addEventListener('click', this.#rollupClickHandler);
 
-    // Сюда мы добавим новые обработчики выбора типа и города
-    // noinspection DuplicatedCode
+    this.element.querySelector('.event__reset-btn')
+      .addEventListener('click', this.#formDeleteClickHandler);
+    const rollupBtn = this.element.querySelector('.event__rollup-btn');
+    if (rollupBtn) {
+      rollupBtn.addEventListener('click', this.#rollupClickHandler);
+    }
+
     this.element.querySelector('.event__type-group')
       .addEventListener('change', this.#typeChangeHandler);
     this.element.querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
 
-    // Добавляем слушатель на контейнер с офферами
     this.element.querySelector('.event__available-offers')
       ?.addEventListener('change', this.#offerChangeHandler);
 
-    // И на поле цены
     this.element.querySelector('.event__input--price')
       .addEventListener('input', this.#priceChangeHandler);
-
-    this.element.querySelector('.event__reset-btn')
-      .addEventListener('click', this.#formDeleteClickHandler);
 
     this.#setDatepicker();
   }
@@ -299,6 +306,15 @@ export default class PointEditView extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
+
+    const isDestinationInvalid = !this._state.destination;
+    const isPriceInvalid = this._state.basePrice <= 0 || isNaN(this._state.basePrice);
+
+    if (isDestinationInvalid || isPriceInvalid) {
+      this.shake(); // Трясем форму и выходим из метода
+      return;
+    }
+
     this.#handleFormSubmit?.(PointEditView.parseStateToPoint(this._state));
   };
 
