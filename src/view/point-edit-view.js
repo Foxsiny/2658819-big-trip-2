@@ -214,7 +214,7 @@ export default class PointEditView extends AbstractStatefulView {
       this.#destinations,
       this.#offers,
       this.#isNewPoint
-      );
+    );
   }
 
   removeElement() {
