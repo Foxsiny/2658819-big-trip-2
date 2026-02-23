@@ -60,7 +60,7 @@ const Method = {
 const BLANK_POINT = {
   type: 'flight',
   destination: '',
-  basePrice: 0,
+  basePrice: '',
   offers: [],
   dateFrom: new Date(),
   dateTo: new Date(),
