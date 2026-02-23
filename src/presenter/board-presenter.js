@@ -39,7 +39,6 @@ export default class BoardPresenter {
     });
   }
 
-  // Геттер - единственный источник данных для отрисовки
   get points() {
     const points = this.#pointsModel.points;
 
@@ -205,9 +204,6 @@ export default class BoardPresenter {
 
   createPoint() {
     this.#currentSortType = SortType.DAY;
-    // this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
-
-    // this.#handleModeChange();
 
     this.#newPointPresenter.init(this.#pointsModel.destinations, this.#pointsModel.offers);
   }

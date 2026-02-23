@@ -36,7 +36,7 @@ export default class PointPresenter {
     this.#pointComponent = new PointView({
       point: this.#point,
       destination: destination,
-      offers: offersByType, // Передаем только офферы нужного типа
+      offers: offersByType,
       onEditClick: this.#handleEditClick,
       onFavoriteClick: this.#handleFavoriteClick,
     });
@@ -78,7 +78,7 @@ export default class PointPresenter {
 
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
-      this.#pointEditComponent.reset(this.#point); // Сброс данных
+      this.#pointEditComponent.reset(this.#point);
       this.#replaceFormToCard();
     }
   }
@@ -116,7 +116,7 @@ export default class PointPresenter {
         {...this.#point, isFavorite: !this.#point.isFavorite}
       );
     } catch (err) {
-      this.#pointComponent.shake(); // Трясем карточку, если ошибка
+      this.#pointComponent.shake();
     }
   };
 

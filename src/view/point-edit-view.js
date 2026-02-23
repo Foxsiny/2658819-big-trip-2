@@ -316,7 +316,7 @@ export default class PointEditView extends AbstractStatefulView {
     const isPriceInvalid = this._state.basePrice <= 0 || isNaN(this._state.basePrice);
 
     if (isDestinationInvalid || isPriceInvalid) {
-      this.shake(); // Трясем форму и выходим из метода
+      this.shake();
       return;
     }
 
@@ -347,7 +347,6 @@ export default class PointEditView extends AbstractStatefulView {
     this.#handleDeleteClick?.(PointEditView.parseStateToPoint(this._state));
   };
 
-  // noinspection DuplicatedCode
   #setDatepicker() {
     if (this._state.isDisabled) {
       return;
