@@ -14,7 +14,6 @@ export default class FilterPresenter {
     this.#filterModel = filterModel;
     this.#pointsModel = pointsModel;
 
-    // Подписываемся на изменения в обеих моделях
     this.#pointsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
   }

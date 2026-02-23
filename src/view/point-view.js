@@ -77,7 +77,7 @@ export default class PointView extends AbstractView {
     this.#offers = offers.filter((o) => point.offers.includes(o.id));
 
     this.#handleEditClick = onEditClick;
-    this.#handleFavoriteClick = onFavoriteClick; // Сохраняем
+    this.#handleFavoriteClick = onFavoriteClick;
     this.#setInnerHandlers();
   }
 

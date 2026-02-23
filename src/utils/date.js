@@ -12,7 +12,7 @@ const humanizePointTime = (date) => date ? dayjs(date).format(TIME_FORMAT) : '';
 const getPointDuration = (dateFrom, dateTo) => {
   const start = dayjs(dateFrom);
   const end = dayjs(dateTo);
-  const diff = end.diff(start); // Разница в миллисекундах
+  const diff = end.diff(start);
   const pointDuration = dayjs.duration(diff);
 
   if (pointDuration.asDays() >= 1) {

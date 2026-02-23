@@ -20,7 +20,7 @@ export default class PointsApiService extends ApiService {
   async addPoint(point) {
     const response = await this._load({
       url: 'points',
-      method: Method.POST, // Для создания — POST
+      method: Method.POST,
       body: JSON.stringify(point),
       headers: new Headers({'Content-Type': 'application/json'}),
     });

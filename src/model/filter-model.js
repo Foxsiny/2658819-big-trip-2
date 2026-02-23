@@ -8,10 +8,8 @@ export default class FilterModel extends Observable {
     return this.#filter;
   }
 
-  // Метод для изменения фильтра
   setFilter(updateType, filter) {
     this.#filter = filter;
-    // Уведомляем подписчиков (BoardPresenter и FilterPresenter)
     this._notify(updateType, filter);
   }
 }

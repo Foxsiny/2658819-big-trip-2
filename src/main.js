@@ -50,7 +50,4 @@ mainPresenter.init();
 pointsModel.init()
   .finally(() => {
     newPointButtonElement.disabled = false;
-  })
-  .catch(() => {
-    newPointButtonElement.disabled = true;
   });

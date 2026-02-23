@@ -45,14 +45,9 @@ export default class MainPresenter {
   }
 
   #handleModelEvent = (updateType) => {
-    // if (updateType === UpdateType.INIT || updateType === UpdateType.MINOR || updateType === UpdateType.MAJOR) {
-    //   this.init();
-    // }
     if (updateType === UpdateType.MAJOR) {
-      this.init(); // MAJOR по-прежнему может дергать init, так как там есть сброс
+      this.init();
     }
-
-    // Для INIT и MINOR перерисовываем ТОЛЬКО шапку, не трогая init()
     if (updateType === UpdateType.INIT || updateType === UpdateType.MINOR) {
       this.#renderTripInfo();
     }
