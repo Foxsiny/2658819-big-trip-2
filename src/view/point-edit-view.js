@@ -143,7 +143,7 @@ const createPointEditTemplate = (state, destinations, offers, isNewPoint) => {
           <span class="visually-hidden">Price</span>
           &euro;
         </label>
-        <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price"
+        <input class="event__input  event__input--price" id="event-price-1" type="number" min="1" name="event-price"
                value="${basePrice}" ${isDisabled ? 'disabled' : ''}/>
       </div>
 
@@ -179,9 +179,12 @@ export default class PointEditView extends AbstractStatefulView {
   #handleDeleteClick = null;
   #datepickerFrom = null;
   #datepickerTo = null;
+  #isNewPoint = null;
 
-  constructor({ point, destinations, offers, onFormSubmit, onRollupClick, onDeleteClick }) {
+  constructor({ point, destinations, offers, onFormSubmit, onRollupClick, onDeleteClick, isNewPoint = false }) {
     super();
+
+    this.#isNewPoint = isNewPoint;
 
     this._setState(PointEditView.parsePointToState(point));
 
@@ -209,7 +212,9 @@ export default class PointEditView extends AbstractStatefulView {
     return createPointEditTemplate(
       this._state,
       this.#destinations,
-      this.#offers);
+      this.#offers,
+      this.#isNewPoint
+      );
   }
 
   removeElement() {
