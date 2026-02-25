@@ -8,6 +8,7 @@ export default class PointsModel extends Observable {
   #destinations = [];
   #offers = [];
   #isLoading = true;
+  #isError = false;
 
   constructor({pointsApiService}) {
     super();
@@ -28,6 +29,10 @@ export default class PointsModel extends Observable {
 
   get offers() {
     return this.#offers;
+  }
+
+  get isError() {
+    return this.#isError;
   }
 
   async updatePoint(updateType, update) {
@@ -100,11 +105,13 @@ export default class PointsModel extends Observable {
       this.#points = points.map(this.#adaptToClient);
       this.#destinations = destinations;
       this.#offers = offers;
+      this.#isError = false;
 
     } catch (err) {
       this.#points = [];
       this.#destinations = [];
       this.#offers = [];
+      this.#isError = true;
 
     } finally {
       this.#isLoading = false;
@@ -117,7 +124,7 @@ export default class PointsModel extends Observable {
       ...point,
       id: point.id.toString(),
       basePrice: point['base_price'],
-      dateFrom: point['date_from'] !== null ? new Date(point['date_from']) : point['date_from'], // Превращаем строку в объект даты
+      dateFrom: point['date_from'] !== null ? new Date(point['date_from']) : point['date_from'],
       dateTo: point['date_to'] !== null ? new Date(point['date_to']) : point['date_to'],
       isFavorite: point['is_favorite'],
     };

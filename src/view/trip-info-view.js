@@ -3,7 +3,7 @@ import { humanizePointDate } from '../utils/date.js';
 
 const createTripInfoTemplate = (points, destinations, totalCost) => {
 
-  const routeNames = points.map((p) => destinations.find((d) => d.id === p.destination)?.name);
+  const routeNames = points.map((point) => destinations.find((destination) => destination.id === point.destination)?.name);
   const route = routeNames.length <= 3
     ? routeNames.join(' &mdash; ')
     : `${routeNames[0]} &mdash; ... &mdash; ${routeNames[routeNames.length - 1]}`;

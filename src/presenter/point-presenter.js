@@ -30,8 +30,8 @@ export default class PointPresenter {
     const prevPointComponent = this.#pointComponent;
     const prevPointEditComponent = this.#pointEditComponent;
 
-    const destination = destinations.find((d) => String(d.id) === String(this.#point.destination));
-    const offersByType = offers.find((o) => o.type === this.#point.type)?.offers || [];
+    const destination = destinations.find((pointDestination) => String(pointDestination.id) === String(this.#point.destination));
+    const offersByType = offers.find((offer) => offer.type === this.#point.type)?.offers || [];
 
     this.#pointComponent = new PointView({
       point: this.#point,

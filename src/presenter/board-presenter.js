@@ -65,6 +65,13 @@ export default class BoardPresenter {
       return;
     }
 
+    if (this.#pointsModel.isError) {
+      this.#renderError();
+      return;
+    }
+
+    render(this.#listComponent, this.#boardContainer);
+
     const points = this.points;
     const pointCount = points.length;
 
@@ -74,8 +81,15 @@ export default class BoardPresenter {
     }
 
     this.#renderSort();
-    render(this.#listComponent, this.#boardContainer);
+
     points.forEach((point) => this.#renderPoint(point));
+  }
+
+  #renderError() {
+    this.#noPointComponent = new NoPointView({
+      filterType: FilterType.ERROR
+    });
+    render(this.#noPointComponent, this.#boardContainer);
   }
 
   #renderLoading() {
@@ -204,7 +218,7 @@ export default class BoardPresenter {
 
   createPoint() {
     this.#currentSortType = SortType.DAY;
-
-    this.#newPointPresenter.init(this.#pointsModel.destinations, this.#pointsModel.offers);
+    this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+    this.#newPointPresenter.init(this.#listComponent.element, this.#pointsModel.destinations, this.#pointsModel.offers);
   }
 }

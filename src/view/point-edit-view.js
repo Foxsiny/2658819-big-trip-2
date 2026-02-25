@@ -86,7 +86,7 @@ const createPointEditTemplate = (state, destinations, offers, isNewPoint) => {
         <span class="visually-hidden">Open event</span>
       </button>`;
 
-  const pointDestination = destinations.find((dest) => dest.id === destinationId);
+  const pointDestination = destinations.find((destination) => destination.id === destinationId);
 
   const offersByType = offers.find((offer) => offer.type === type)?.offers || [];
 
@@ -124,18 +124,18 @@ const createPointEditTemplate = (state, destinations, offers, isNewPoint) => {
           ${isDisabled ? 'disabled' : ''}
         >
         <datalist id="destination-list-1">
-          ${destinations.map((dest) => `<option value="${dest.name}"></option>`).join('')}
+          ${destinations.map((destination) => `<option value="${destination.name}"></option>`).join('')}
         </datalist>
       </div>
 
       <div class="event__field-group  event__field-group--time">
         <label class="visually-hidden" for="event-start-time-1">From</label>
         <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time"
-               value="${humanizePointDate(dateFrom, 'DD/MM/YY HH:mm')}" ${isDisabled ? 'disabled' : ''}/>
+               value="${dateFrom ? humanizePointDate(dateFrom, 'DD/MM/YY HH:mm') : ''}" ${isDisabled ? 'disabled' : ''}/>
         &mdash;
         <label class="visually-hidden" for="event-end-time-1">To</label>
         <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time"
-               value="${humanizePointDate(dateTo, 'DD/MM/YY HH:mm')}" ${isDisabled ? 'disabled' : ''}/>
+               value="${dateTo ? humanizePointDate(dateTo, 'DD/MM/YY HH:mm') : ''}" ${isDisabled ? 'disabled' : ''}/>
       </div>
 
       <div class="event__field-group  event__field-group--price">
@@ -143,7 +143,7 @@ const createPointEditTemplate = (state, destinations, offers, isNewPoint) => {
           <span class="visually-hidden">Price</span>
           &euro;
         </label>
-        <input class="event__input  event__input--price" id="event-price-1" type="number" min="1" name="event-price"
+        <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price"
                value="${basePrice}" ${isDisabled ? 'disabled' : ''}/>
       </div>
 
@@ -161,7 +161,7 @@ const createPointEditTemplate = (state, destinations, offers, isNewPoint) => {
           ${pointDestination.pictures && pointDestination?.pictures.length > 0 ? `
             <div class="event__photos-container">
               <div class="event__photos-tape">
-                ${pointDestination.pictures.map((pic) => `<img class="event__photo" src="${pic.src}" alt="${pic.description}">`).join('')}
+                ${pointDestination.pictures.map((picture) => `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`).join('')}
               </div>
             </div>` : ''}
         </section>` : ''}
@@ -359,13 +359,14 @@ export default class PointEditView extends AbstractStatefulView {
       enableTime: true,
       'time_24hr': true,
       minuteIncrement: 1,
+      allowInput: true,
     };
 
     this.#datepickerFrom = flatpickr(
       this.element.querySelector('#event-start-time-1'),
       {
         ...commonConfig,
-        defaultDate: this._state.dateFrom,
+        defaultDate: this._state.dateFrom || '',
         maxDate: this._state.dateTo,
         onChange: this.#dateFromChangeHandler,
       },
@@ -375,7 +376,7 @@ export default class PointEditView extends AbstractStatefulView {
       this.element.querySelector('#event-end-time-1'),
       {
         ...commonConfig,
-        defaultDate: this._state.dateTo,
+        defaultDate: this._state.dateTo || '',
         minDate: this._state.dateFrom,
         onChange: this.#dateToChangeHandler,
       },

@@ -18,7 +18,8 @@ export default class NewPointPresenter {
     this.#handleModeChange = onModeChange;
   }
 
-  init(destinations, offers) {
+  init(container, destinations, offers) {
+    this.#listContainer = container;
     this.#destinations = destinations;
     this.#offers = offers;
 
@@ -62,7 +63,6 @@ export default class NewPointPresenter {
         UpdateType.MINOR,
         point,
       );
-      // this.destroy();
     } catch (err) {
       this.#pointEditComponent.setAborting();
     }
@@ -72,9 +72,9 @@ export default class NewPointPresenter {
     this.destroy();
   };
 
-  #escKeyDownHandler = (evt) => {
-    if (evt.key === 'Escape' || evt.key === 'Esc') {
-      evt.preventDefault();
+  #escKeyDownHandler = (event) => {
+    if (event.key === 'Escape' || event.key === 'Esc') {
+      event.preventDefault();
       this.destroy();
     }
   };

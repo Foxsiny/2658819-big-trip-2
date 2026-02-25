@@ -6,6 +6,7 @@ const FilterType = {
   PRESENT: 'present',
   PAST: 'past',
   LOADING: 'loading',
+  ERROR: 'error',
 };
 
 const NoPointsTextType = {
@@ -14,6 +15,7 @@ const NoPointsTextType = {
   [FilterType.PRESENT]: 'There are no present events now',
   [FilterType.PAST]: 'There are no past events now',
   [FilterType.LOADING]: 'Loading...',
+  [FilterType.ERROR]: 'Failed to load latest route information',
 };
 
 const Mode = {
@@ -60,10 +62,10 @@ const Method = {
 const BLANK_POINT = {
   type: 'flight',
   destination: '',
-  basePrice: '',
+  basePrice: 0,
   offers: [],
-  dateFrom: new Date(),
-  dateTo: new Date(),
+  dateFrom: null,
+  dateTo: null,
   isFavorite: false
 };
 
